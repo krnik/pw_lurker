@@ -17,7 +17,7 @@
             "type": "string",
             "minLength": 1
           },
-          "bot.headless": {
+          "bot.workOnWait": {
             "type": "boolean"
           },
           "leader.minHealth": {
@@ -40,7 +40,7 @@
         "required": [
           "user.login",
           "user.password",
-          "bot.headless",
+          "bot.workOnWait",
           "leader.minHealth",
           "leader.healMethod"
         ]

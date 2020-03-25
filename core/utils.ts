@@ -1,17 +1,44 @@
-import type {Option, OrPromise} from "./types";
+import type {Option} from "./types";
 import { ElementHandle } from "puppeteer";
 
 export function unreachable (): never {
     throw new Error('Unreachable');
 }
 
-export async function chain<
-    F extends (...args: any[]) => OrPromise<void>,
-    A extends Parameters<F>
-> (functions: F[], args: A): Promise<void> {
-    for (const fn of functions) {
-        await fn(...args);
+export const is = {
+    str <T>(value: T): string {
+        if (typeof value === 'string') return value;
+
+        const message = `Expected value: ${value} to be of type "string"`;
+        throw new Error(message);
+    },
+
+    num <T>(value: T): number {
+        if (typeof value === 'number') return value;
+
+        const message = `Expected value: ${value} to be of type "number"`;
+        throw new Error(message);
+    },
+};
+
+export function combine<
+    F1 extends (...args: any[]) => any,
+    F2 extends (...args: ReturnType<F1>[]) => any,
+> (f1: F1, f2: F2): (...args: Parameters<F1>) => ReturnType<F2> {
+    return (...args: Parameters<F1>) => {
+        return f2(f1(...args));
+    };
+
+}
+
+export function props<T, K extends keyof T> (source: T, keys: K[]): T[K][] {
+    const values: T[K][] = [];
+
+    for (const key of keys) {
+        values.push(source[key]);
     }
+    
+    return values;
 }
 
 export function some<T> (value: T): Exclude<T, null | undefined> {

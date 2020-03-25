@@ -1,8 +1,9 @@
 import { resolve } from 'path';
 import {existsSync, mkdirSync, statSync, unlinkSync, readdirSync, readFile, writeFile, readFileSync} from 'fs';
 import type {Response} from 'puppeteer';
-import { some } from './utils.js';
-import * as Pino from 'pino';
+import { some } from '../core/utils.js';
+import { CACHE_DIR_NAME, STATIC_DIR_NAME } from '../core/constants.js';
+import { logger } from './utils/logger.js';
 
 function ensureDirectory (path: string): string {
     if (!existsSync(path)) {
@@ -18,13 +19,13 @@ function ensureDirectory (path: string): string {
     return path;
 }
 
-const CACHE_DIR_PATH = ensureDirectory(resolve(process.cwd(),  '.pw_bot_cache'));
-const STATIC_DIR_PATH = resolve(process.cwd(), 'static');
+const CACHE_DIR_PATH = ensureDirectory(resolve(process.cwd(), CACHE_DIR_NAME));
+const STATIC_DIR_PATH = resolve(process.cwd(), STATIC_DIR_NAME);
 
 class CacheBase {
     static REGEX: RegExp = /^https?:\/\/(gra\.)?pokewars.pl\/(?<route>.+)(\?[\w\W]*)?$/i;
     static MIMES: RegExp[] = [/^image\/\w+$/];
-    static logger: ReturnType<typeof Pino> = (Pino as any).default();
+    static logger = logger;
     static ignored: Set<string> = new Set();
     static ignoredList: string[] = [];
 

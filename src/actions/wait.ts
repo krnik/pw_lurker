@@ -1,2 +1,0 @@
-
-// remove view<X> actions

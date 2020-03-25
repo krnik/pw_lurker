@@ -1,6 +1,7 @@
 {
   "include": [
-    "./src"
+    "./bot",
+    "./core"
   ],
   "exclude": [],
   "compilerOptions": {
@@ -11,7 +12,6 @@
     "declarationMap": true,
     "sourceMap": true,
     "outDir": "./dist",
-    "rootDir": "./src",
     "composite": true,
     "tsBuildInfoFile": "./.ts_build",
     "strict": true,
