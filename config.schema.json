@@ -1,0 +1,50 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "accounts": {
+      "type": "array",
+      "minLength": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "user.login": {
+            "type": "string",
+            "minLength": 1
+          },
+          "user.password": {
+            "type": "string",
+            "minLength": 1
+          },
+          "bot.headless": {
+            "type": "boolean"
+          },
+          "leader.minHealth": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "leader.healMethod": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "juice",
+                "money",
+                "herb",
+                "wait"
+              ]
+            }
+          }
+      },
+        "required": [
+          "user.login",
+          "user.password",
+          "bot.headless",
+          "leader.minHealth",
+          "leader.healMethod"
+        ]
+      }
+    }
+  }
+}
