@@ -51,6 +51,7 @@ export const NoAP: Task = {
                 } else {
                     await app.page.ensurePath(ROUTE.START);
                     await app.sleep(ms);
+                    await app.page.reload();
                 }
 
                 break;
