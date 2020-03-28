@@ -85,6 +85,8 @@
           "user.password",
           "bot.workOnWait",
           "hunt.preferredLocation",
+          "hunt.locationPACost",
+          "hunt.refillMethod",
           "hunt.pokeballs",
           "leader.minHealth",
           "leader.healMethod"
