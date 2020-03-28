@@ -10,11 +10,15 @@ export const RefillPA: Task = {
         const method = await app.config('hunt.refillMethod');   
 
         switch (method) {
-            case 'wait': return await app.execute(TASK.WAIT, {});
+            case 'wait':
+                await app.execute(TASK.WAIT, {});
+                break;
+
             case 'oak':
                 await app.page.ensurePath(ROUTE.INVENTORY);
                 await app.page.clickNavigate(OAK);
                 break;
+
             case 'junipier':
                 await app.page.ensurePath(ROUTE.INVENTORY);
                 await app.page.clickNavigate(JUNIPIER);
