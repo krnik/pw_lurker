@@ -1,13 +1,16 @@
 {
   "include": [
     "./bot",
-    "./core"
+    "./core",
+    "./static"
   ],
   "exclude": [],
   "compilerOptions": {
+    "allowJs": true,
     "incremental": true,
     "target": "ESNext",
     "module": "ESNext",
+    "moduleResolution": "node",
     "declaration": true,
     "declarationMap": true,
     "sourceMap": true,

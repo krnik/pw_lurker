@@ -1,30 +1,15 @@
 import { resolve } from 'path';
-import {existsSync, mkdirSync, statSync, unlinkSync, readdirSync, readFile, writeFile, readFileSync} from 'fs';
+import {readdirSync, readFile, writeFile, readFileSync} from 'fs';
 import type {Response} from 'puppeteer';
 import { some } from '../core/utils.js';
 import { CACHE_DIR_NAME, STATIC_DIR_NAME } from '../core/constants.js';
 import { logger } from './utils/logger.js';
 
-function ensureDirectory (path: string): string {
-    if (!existsSync(path)) {
-        mkdirSync(path);
-    } else {
-        const info = statSync(path);
-        if (!info.isDirectory()) {
-            unlinkSync(path);
-            mkdirSync(path);
-        }
-    }
-
-    return path;
-}
-
-const CACHE_DIR_PATH = ensureDirectory(resolve(process.cwd(), CACHE_DIR_NAME));
-const STATIC_DIR_PATH = resolve(process.cwd(), STATIC_DIR_NAME);
-
 class CacheBase {
     static REGEX: RegExp = /^https?:\/\/(gra\.)?pokewars.pl\/(?<route>.+)(\?[\w\W]*)?$/i;
     static MIMES: RegExp[] = [/^image\/\w+$/];
+    static CACHE_PATH = resolve(process.cwd(), CACHE_DIR_NAME);
+    static STATIC_PATH = resolve(process.cwd(), STATIC_DIR_NAME);
     static logger = logger;
     static ignored: Set<string> = new Set();
     static ignoredList: string[] = [];
@@ -32,6 +17,11 @@ class CacheBase {
     static ignore (url: string) {
         this.ignored.add(url);
         this.ignoredList.push(url);
+
+        this.logger.trace({
+            ignoredCount: this.ignored.size,
+            msg: 'Ignoring URL',
+        });
 
         if (this.ignoredList.length > 400) {
             setTimeout(() => {
@@ -82,18 +72,16 @@ class CacheBase {
         return encodeURIComponent(name);
     }
 
-    path: string;
     items: Set<string>;
     staticItems: Map<string, Buffer>;
 
-    constructor (path: string) {
-        this.path = path;
-        this.items = new Set(readdirSync(path));
+    constructor () {
+        this.items = new Set(readdirSync(CacheBase.CACHE_PATH));
         this.staticItems = new Map();
 
-        const staticFiles = readdirSync(STATIC_DIR_PATH);
+        const staticFiles = readdirSync(CacheBase.STATIC_PATH);
         for (const file of staticFiles) {
-            this.staticItems.set(file, readFileSync(resolve(STATIC_DIR_PATH, file)));
+            this.staticItems.set(file, readFileSync(resolve(CacheBase.STATIC_PATH, file)));
         }
     }
 
@@ -104,7 +92,7 @@ class CacheBase {
 
     get (url: string): Promise<Buffer> {
         const name = CacheBase.fileName(url);
-        const path = resolve(CACHE_DIR_PATH, name);
+        const path = resolve(CacheBase.CACHE_PATH, name);
 
         if (!this.items.has(name)) {
             const message = `No file ${url} in cache.`;
@@ -129,7 +117,7 @@ class CacheBase {
 
         this.items.add(path);
         await new Promise(async (res, rej) => {
-            writeFile(resolve(this.path, path), await response.buffer(), (err) => err ? rej(err) : res());
+            writeFile(resolve(CacheBase.CACHE_PATH, path), await response.buffer(), (err) => err ? rej(err) : res());
         });
     }
     
@@ -143,6 +131,4 @@ class CacheBase {
     }
 }
 
-CacheBase.logger.level = 'trace';
-
-export const Cache = new CacheBase(CACHE_DIR_PATH);
+export const Cache = new CacheBase();

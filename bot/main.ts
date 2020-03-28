@@ -2,7 +2,6 @@
 import puppeteer, * as P from 'puppeteer';
 import type {App, Page, State, Config, Logger, Extern, Of} from "../core/types";
 import {BotPage, getBotPages} from "./page.js";
-import {logger} from "./utils/logger.js";
 import {BotExtern} from "./extern.js";
 import {getTask} from "../core/task/task.mod.js";
 import {TASK} from "../core/constants.js";
@@ -21,7 +20,7 @@ export class Bot implements App<Page.Handle> {
     private constructor (page: BotPage, state: BotState, config: Config.Core) {
         this.page = page;
         this.state = state;
-        this.logger = logger.child({ acc: config['user.login'] });
+        this.logger = page.logger;
         this.__config = config;
         this.extern = new BotExtern(page);
     }
@@ -38,6 +37,7 @@ export class Bot implements App<Page.Handle> {
             });
 
             await getTask(task.name).perform(this, task.params);
+            await this.state.update();
         }
 
         this.logger.info({ msg: 'All tasks performed' });
@@ -78,16 +78,42 @@ export class Bot implements App<Page.Handle> {
         }
 
         if (!this.state.isLeaderHealthy(await this.config('leader.minHealth'))) {
+            this.state.tasks = [{
+                name: TASK.HEAL,
+                params: {},
+            }];
+            return;
         }
 
         if (this.state.isPokeboxFull()) {
+            this.state.tasks = [
+                {
+                    name: TASK.EVOLVE_POKEMONS,
+                    params: {},
+                },
+                {
+                    name: TASK.SELL_POKEMONS,
+                    params: {},
+                },
+            ];
+            return;
         }
 
         if (this.state.hasMoneyInPocket()) {
+            this.state.tasks = [{
+                name: TASK.BANK_DEPOSIT,
+                params: {},
+            }];
+            return;
         }
 
-        // Check if AP needs refill
-        // Hunt
+        if (this.state.actionPointsCount >= await this.config('hunt.locationPACost')) {
+            this.state.tasks = [{
+                name: TASK.HUNT,
+                params: {},
+            }];
+            return;
+        }
 
         this.state.tasks = [{
             name: TASK.WAIT,
@@ -105,7 +131,6 @@ async function start () {
     });
 
     const bots = await Bot.create(browser);
-    await Promise.all(bots.map((bot) => bot.page.goto('https://pokewars.pl')));
 
     return bots.map((bot) => bot.act());
 }

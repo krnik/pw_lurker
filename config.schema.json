@@ -20,6 +20,41 @@
           "bot.workOnWait": {
             "type": "boolean"
           },
+          "hunt.locationPACost": {
+            "type": "number",
+            "minimum": 4,
+            "maximum": 8
+          },
+          "hunt.preferredLocation": {
+            "type": "string",
+            "minLength": 1
+          },
+          "hunt.pokeballs": {
+            "type": "array",
+            "minLength": 1,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["name", "when"],
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "enum": [
+                    "netball",
+                    "levelball"
+                  ]
+                },
+                "when": {
+                  "type": "string",
+                  "enum": [
+                    "starter",
+                    "shiny",
+                    "always"
+                  ]
+                }
+              }
+            }
+          },
           "leader.minHealth": {
             "type": "integer",
             "minimum": 1
@@ -41,6 +76,8 @@
           "user.login",
           "user.password",
           "bot.workOnWait",
+          "hunt.preferredLocation",
+          "hunt.pokeballs",
           "leader.minHealth",
           "leader.healMethod"
         ]

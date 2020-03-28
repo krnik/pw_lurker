@@ -1,5 +1,5 @@
 import { Page, ElementHandle } from "puppeteer";
-import { TASK } from "./constants";
+import { TASK, POKEBALL } from "./constants";
 
 export type None = null | undefined;
 export type Some<T> = T;
@@ -17,17 +17,26 @@ export namespace Logger {
         debug: LogFn;
         error: LogFn;
         info: LogFn;
+        warn: LogFn;
         fatal: LogFn;
     }
 }
 
 export namespace Config {
     export type HealMethod = ('juice' | 'money' | 'herb' | 'wait'); 
+    export type PokeballCondition = ('starter' | 'shiny' | 'always');
+    export type PokeballThrowInfo = {
+        when: PokeballCondition,
+        name: POKEBALL,
+    };
 
     export type Core = {
         'user.password': string;
         'user.login': string;
         'bot.workOnWait': boolean;
+        'hunt.preferredLocation': string; // TODO: Use enum
+        'hunt.locationPACost': number;
+        'hunt.pokeballs': PokeballThrowInfo[];
         'leader.minHealth': number;
         'leader.healMethod': HealMethod[];
     };
@@ -53,11 +62,13 @@ export namespace Page {
 
     export interface Core<R extends ElemResult> {
         getElem (selector: string): Promise<R>;
+        getElems (selector: string): Promise<R[]>;
         getText (selector: string): Promise<string>;
         getAttr (selector: string, attrName: string): Promise<Option<string>>;
         getAttrs (selector: string, attrName: string): Promise<Option<string>[]>;
         click (selector: string): Promise<void>;
         type (selector: string, text: string): Promise<void>;
+        submitNavigate (formName: string): Promise<void>;
         clickNavigate (selector: string): Promise<void>;
         currentUrl (): Promise<string>;
         ensurePath (path: string): Promise<void>;
@@ -83,6 +94,11 @@ export namespace State {
         params: { [k: string]: Or<number, string> };
     };
 
+    export type Location = {
+        name: string;
+        text: string;
+    };
+
     export interface Core {
         actionPointsCount: number;
         maxActionPoinsCount: number;
@@ -91,6 +107,10 @@ export namespace State {
         moneyAmount: number;
         team: Team;
         tasks: Task[];
+        location: Location;
+        locations: Location[];
+
+        update (): Promise<void>;
     };
 }
 

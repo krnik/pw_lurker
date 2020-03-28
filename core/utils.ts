@@ -1,4 +1,4 @@
-import type {Option} from "./types";
+import type {Option, Some, None} from "./types";
 import { ElementHandle } from "puppeteer";
 
 export function unreachable (): never {
@@ -18,6 +18,14 @@ export const is = {
 
         const message = `Expected value: ${value} to be of type "number"`;
         throw new Error(message);
+    },
+
+    some <T>(value: Option<T>): value is Some<T> {
+        return value != null;
+    },
+
+    none <T>(value: Option<T>): value is None {
+        return value == null;
     },
 };
 
@@ -70,6 +78,3 @@ export async function show (elem: ElementHandle<Element>, fn: () => Promise<void
     await elem.evaluate((e) => e.classList.remove('next_action'));
 }
 
-export function sleep (ms: number): Promise<void> {
-    return new Promise((r) => setTimeout(r, ms));
-}
