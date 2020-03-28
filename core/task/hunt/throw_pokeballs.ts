@@ -1,24 +1,37 @@
 import type { App } from "../../types";
 import {some} from "../../utils.js";
 
-async function wasCaught (app: App): Promise<boolean> {
+async function wasCaught (app: App.Core): Promise<boolean> {
     const selector = '.found_pokemon_bg';
     return await app.page.getElems(selector).then((elems) => elems.length !== 0);
 }
 
-async function throwPokeball (app: App, pokeball: string): Promise<void> {
+async function throwPokeball (app: App.Core, pokeball: string): Promise<void> {
     const formName = `pokeball_${pokeball[0].toUpperCase() + pokeball.slice(1)}`;
     await app.page.submitNavigate(formName);
 }
 
-async function hasPokeball (app: App, pokeball: string): Promise<boolean> {
-    const value = pokeball[0].toUpperCase() + pokeball.slice(1);
-    const selector = `form[method=post] input[name=pokeball][value="${value}"]`;
+async function hasPokeball (app: App.Core, pokeball: string): Promise<boolean> {
+    const formName = `pokeball_${pokeball[0].toUpperCase() + pokeball.slice(1)}`;
+    const selector = `form[name="${formName}"]`;
     return await app.page.getElems(selector).then((elems) => elems.length !== 0);
 }
 
-export async function throwPokeballs (app: App): Promise<void> {
-    const pokeballs = (await app.config('hunt.pokeballs')).slice();
+// TODO: Add shiny + starter cases
+// TODO: Add level cases
+// TODO: Fix false "out of pokeballs" message
+// [1585418585332] DEBUG (23943 on al006): Page.getElems
+//     acc: "OmgNoCoJaRobie"
+//     selector: "form[method=post] input[name=pokeball][value=\"Netball\"]"
+// [1585418585335] WARN  (23943 on al006): Out of pokeballs
+//     acc: "OmgNoCoJaRobie"
+//     pokeball: {
+//       "name": "netball",
+//       "when": "always"
+//     }
+
+export async function throwPokeballs (app: App.Core): Promise<void> {
+    const pokeballs = app.config['hunt.pokeballs'].slice();
 
     while (pokeballs.length > 0) {
         const pokeball = some(pokeballs.shift());

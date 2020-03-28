@@ -9,7 +9,7 @@
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "watch": "tsc -w -p tsconfig.json",
-    "start": "node ./dist/bot/main.js | pino-pretty"
+    "start": "start() { node ./dist/bot/main.js $@ | pino-pretty -t; }; start"
   },
   "type": "module",
   "author": "",

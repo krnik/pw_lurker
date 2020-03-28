@@ -1,6 +1,5 @@
 import type { Page, Option, Config } from '../core/types';
 import {Browser, Page as PuppeteerPage} from 'puppeteer';
-import {configuration} from './configuration.js';
 import {some, props} from '../core/utils.js';
 import {Cache} from './cache.js';
 import { logger } from './utils/logger.js';
@@ -9,7 +8,6 @@ type Elem = Page.Handle;
 type BasePage = PuppeteerPage & Page.Core<Elem>;
 
 export interface BotPage extends BasePage {
-    __config: Config.Core;
     logger: typeof logger,
 };
 
@@ -72,62 +70,58 @@ async function clickNavigate (this: BotPage, selector: string): Promise<void> {
     ]);
 }
 
-export async function getBotPages (browser: Browser): Promise<BotPage[]> {
+export async function getBotPage (browser: Browser, config: Config.Core): Promise<BotPage> {
     type ImplDescriptors = {
         [K in Exclude<keyof BotPage, keyof PuppeteerPage>]: { value: BotPage[K] };
     };
 
     const pages = await browser.pages();
+    const proto = pages[0] || await browser.newPage();
+    await proto.setRequestInterception(true);
 
-    return Promise.all(configuration.accounts.map(async (config, index) => {
-        const proto = pages[index] || await browser.newPage();
-        await proto.setRequestInterception(true);
+    const accLogger = logger.child({ acc: config['user.login'] });
 
-        const accLogger = logger.child({ acc: config['user.login'] });
+    const customImpls: ImplDescriptors = {
+        currentUrl: { value: currentUrl },
+        ensurePath: { value: ensurePath },
+        getText: { value: getText },
+        getElem: { value: getElem },
+        getElems: { value: getElems },
+        getAttr: { value: getAttr },
+        getAttrs: { value: getAttrs },
+        submitNavigate: { value: submitNavigate },
+        clickNavigate: { value: clickNavigate },
+        logger: { value: accLogger },
+    };
 
-        const customImpls: ImplDescriptors = {
-            currentUrl: { value: currentUrl },
-            ensurePath: { value: ensurePath },
-            getText: { value: getText },
-            getElem: { value: getElem },
-            getElems: { value: getElems },
-            getAttr: { value: getAttr },
-            getAttrs: { value: getAttrs },
-            submitNavigate: { value: submitNavigate },
-            clickNavigate: { value: clickNavigate },
-            __config: { value: config },
-            logger: { value: accLogger },
-        };
+    const page: BotPage = Object.create(proto, customImpls);
 
-        const page: BotPage = Object.create(proto, customImpls);
+    page.on('request', async (request) => {
+        const url = request.url();
 
-        page.on('request', async (request) => {
-            const url = request.url();
+        if (url.includes('general.js')) {
+            return await request.respond({
+                status: 200,
+                contentType: 'application/javascript',
+                body: Cache.getStatic('general.js'),
+            });
+        }
 
-            if (url.includes('general.js')) {
-                return await request.respond({
-                    status: 200,
-                    contentType: 'application/javascript',
-                    body: Cache.getStatic('general.js'),
-                });
-            }
+        return Cache.has(url)
+            ? await request.respond({ status: 200, body: await Cache.get(url) })
+            : await request.continue();
+    });
 
-            return Cache.has(url)
-                ? await request.respond({ status: 200, body: await Cache.get(url) })
-                : await request.continue();
-        });
+    page.on('response', (response) => Cache.set(response));
 
-        page.on('response', (response) => Cache.set(response));
+    await page.goto('https://pokewars.pl', { waitUntil: ['load', 'networkidle2'] });
 
-        await page.goto('https://pokewars.pl', { waitUntil: ['load', 'networkidle2'] });
+    const [login, password] = props(config, ['user.login', 'user.password']);
 
-        const [login, password] = props(config, ['user.login', 'user.password']);
+    await page.type('[name=login]', login);
+    await page.type('[name=pass]', password);
+    await page.clickNavigate('[name=zaloguj]');
 
-        await page.type('[name=login]', login);
-        await page.type('[name=pass]', password);
-        await page.clickNavigate('[name=zaloguj]');
-
-        return page;
-    }));
+    return page;
 }
 

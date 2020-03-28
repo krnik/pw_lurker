@@ -22,9 +22,7 @@ export const Hunt: Task = {
             case HUNT_RESULT.POKEMON_ENCOUNTER:
                 await selectLeaderToFight(app);
                 
-                const isVictorious = await isLeaderVictorious(app);
-
-                if (!isVictorious) {
+                if (!(await isLeaderVictorious(app))) {
                     break;
                 }
 

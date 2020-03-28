@@ -1,7 +1,7 @@
 import type { App } from "../../types";
 
-export async function selectLeaderToFight (app: App): Promise<void> {
-    const formName = `poke_${app.state.team.leader.id}`;
+export async function selectLeaderToFight (app: App.Core): Promise<void> {
+    const formName = `poke_${app.state.leader.id}`;
 
     app.logger.debug({
         formName,
@@ -11,7 +11,7 @@ export async function selectLeaderToFight (app: App): Promise<void> {
     return await app.page.submitNavigate(formName);
 }
 
-export async function isLeaderVictorious (app: App): Promise<boolean> {
+export async function isLeaderVictorious (app: App.Core): Promise<boolean> {
     const selector = '.col .infoBar.error';
     
     app.logger.debug({

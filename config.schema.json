@@ -17,19 +17,19 @@
             "type": "string",
             "minLength": 1
           },
-          "bot.workOnWait": {
+          "bot.workWhileWaiting": {
             "type": "boolean"
           },
-          "hunt.locationPACost": {
+          "hunt.locationAPCost": {
             "type": "number",
             "minimum": 4,
             "maximum": 8
           },
-          "hunt.preferredLocation": {
+          "hunt.location": {
             "type": "string",
             "minLength": 1
           },
-          "hunt.refillMethod": {
+          "hunt.noAP": {
             "type": "string",
             "enum": [
               "wait",
@@ -83,10 +83,10 @@
         "required": [
           "user.login",
           "user.password",
-          "bot.workOnWait",
-          "hunt.preferredLocation",
-          "hunt.locationPACost",
-          "hunt.refillMethod",
+          "bot.workWhileWaiting",
+          "hunt.location",
+          "hunt.locationAPCost",
+          "hunt.noAP",
           "hunt.pokeballs",
           "leader.minHealth",
           "leader.healMethod"

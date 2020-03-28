@@ -18,7 +18,7 @@ const configData = JSON.parse(readFileSync(configPath).toString());
 const validator = ajv.compile(JSON.parse(readFileSync(schemaPath).toString()));
 
 if (!validator(configData)) {
-    logger.errro({ errors: validator.errors });
+    logger.error({ errors: validator.errors });
     throw new Error('Invalid Config');
 }
 

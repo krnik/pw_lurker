@@ -24,7 +24,7 @@ export namespace Logger {
 
 export namespace Config {
     export type HealMethod = ('juice' | 'money' | 'herb' | 'wait'); 
-    export type RefillMethod = ('oak' | 'junipier' | 'wait');
+    export type NoAPBehaviour = ('oak' | 'junipier' | 'wait');
     export type PokeballCondition = ('starter' | 'shiny' | 'always');
     export type PokeballThrowInfo = {
         when: PokeballCondition,
@@ -34,11 +34,11 @@ export namespace Config {
     export type Core = {
         'user.password': string;
         'user.login': string;
-        'bot.workOnWait': boolean;
-        'hunt.preferredLocation': string; // TODO: Use enum
-        'hunt.locationPACost': number;
+        'bot.workWhileWaiting': boolean;
+        'hunt.location': string; // TODO: Use enum
+        'hunt.locationAPCost': number;
+        'hunt.noAP': NoAPBehaviour;
         'hunt.pokeballs': PokeballThrowInfo[];
-        'hunt.refillMethod': RefillMethod;
         'leader.minHealth': number;
         'leader.healMethod': HealMethod[];
     };
@@ -87,16 +87,6 @@ export namespace State {
         leader: boolean;
     };
 
-    export type Team = {
-        leader: Pokemon;
-        team: Pokemon[];
-    };
-
-    export type Task = {
-        name: TASK;
-        params: { [k: string]: Or<number, string> };
-    };
-
     export type Location = {
         name: string;
         text: string;
@@ -108,32 +98,38 @@ export namespace State {
         pokemonCount: number;
         maxPokemonCount: number;
         moneyAmount: number;
-        team: Team;
-        tasks: Task[];
+        leader: Pokemon;
+        team: Pokemon[];
         location: Location;
         locations: Location[];
 
-        update (): Promise<void>;
+        refresh (): Promise<void>;
     };
 }
 
 export interface Task<R extends Page.ElemResult = Page.ElemResult> {
     name: TASK;
 
-    perform (app: App<R>, params?: Of<State.Task, 'params'>): Promise<void>;
+    perform (app: App.Core<R>, params?: Of<App.Task, 'params'>): Promise<void>;
 }
 
-export interface App<R extends Page.ElemResult = Page.ElemResult> {
-    state: State.Core;
-    page: Page.Core<R>;
-    logger: Logger.Core;
-    extern: Extern.Core;
-    readonly __config: Config.Core;
+export namespace App {
+    export type Task = {
+        name: TASK;
+        params: { [k: string]: Or<number, string> };
+    };
 
-    config <K extends keyof Config.Core>(key: K): Promise<Config.Core[K]>;
-    act (): Promise<void>;
-    sleep (ms: number): Promise<void>;
-    execute (task: TASK, params: Of<State.Task, 'params'>): Promise<void>;
-    nextTasks (): Promise<void>;
+    export interface Core<R extends Page.ElemResult = Page.ElemResult> {
+        state: State.Core;
+        page: Page.Core<R>;
+        logger: Logger.Core;
+        extern: Extern.Core;
+        config: Config.Core;
+        tasks: Task[];
+
+        act (): Promise<void>;
+        sleep (ms: number): Promise<void>;
+        execute (task: TASK, params: Of<Task, 'params'>): Promise<void>;
+        nextTasks (): Promise<void>;
+    }
 }
-

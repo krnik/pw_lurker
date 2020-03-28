@@ -1,4 +1,4 @@
-import type { State } from "../core/types";
+import type { State, Config } from "../core/types";
 import {ROUTE} from "../core/constants.js";
 import {BotPage} from "./page.js";
 import {toNumber, toMoneyAmount, some, is} from "../core/utils.js";
@@ -13,21 +13,21 @@ export class BotState implements State.Core {
     public maxActionPoinsCount: number;
     public maxPokemonCount: number;
     public pokemonCount: number;
-    public team: State.Team;
-    public tasks: State.Task[];
+    public team: State.Pokemon[];
+    public leader: State.Pokemon;
     public location: State.Location;
     public locations: State.Location[];
     public moneyAmount: number;
 
-    constructor (page: BotPage, data: Omit<State.Core, 'update'>) {
+    constructor (page: BotPage, data: Omit<State.Core, 'refresh'>) {
         this.page = page;
         this.maxActionPoinsCount = data.maxActionPoinsCount;
         this.actionPointsCount = data.actionPointsCount;
         this.maxPokemonCount = data.maxPokemonCount;
         this.pokemonCount = data.pokemonCount;
         this.team = data.team;
+        this.leader = data.leader;
         this.moneyAmount = data.moneyAmount;
-        this.tasks = data.tasks;
         this.location = data.location;
         this.locations = data.locations;
     }
@@ -35,7 +35,7 @@ export class BotState implements State.Core {
     private async updateLeaderHealth (): Promise<void> {
         const LEADER_HP = '#info-box-content .progress_bar .progress.red ~ .text';
 
-        const elems = await this.page.getElems(leaderSelector(this.team.leader.id, true));
+        const elems = await this.page.getElems(leaderSelector(this.leader.id, true));
         if (elems.length === 0) {
             const message = 'Cannot update leader health because it is not actively selected pokemon in the side tab.';
             throw new Error(message);
@@ -44,8 +44,8 @@ export class BotState implements State.Core {
         const text = await this.page.getText(LEADER_HP)
         const hpBar = text.split(/:|\//g).slice(1).map((str) => toNumber(str.trim().replace('.', '')));
         
-        this.team.leader.hp = hpBar[1];
-        this.team.leader.maxHP = hpBar[2];
+        this.leader.hp = hpBar[1];
+        this.leader.maxHP = hpBar[2];
     }
 
     public isPokeboxFull (): boolean {
@@ -57,14 +57,14 @@ export class BotState implements State.Core {
     }
 
     public isLeaderHealthy (minimum: number): boolean {
-        return this.team.leader.hp >= minimum;
+        return this.leader.hp >= minimum;
     }
 
     public isRefillNeeded (minimum: number): boolean {
         return this.actionPointsCount < minimum;
     }
 
-    public async update (): Promise<void> {
+    public async refresh (): Promise<void> {
         const [money, pokeCount, ap] = await Promise.all([
             BotState.getMoneyInfo(this.page),
             BotState.getPokemonCountInfo(this.page),
@@ -79,20 +79,17 @@ export class BotState implements State.Core {
         this.maxActionPoinsCount = ap.maxActionPoinsCount;
     }
 
-    public static async create (page: BotPage): Promise<BotState> {
+    public static async create (page: BotPage, config: Config.Core): Promise<BotState> {
         await page.ensurePath(ROUTE.TEAM);
 
-        const preferredLocation = page.__config['hunt.preferredLocation'];
-
         const locations = await BotState.getAvailableLocations(page);
-        const location = locations.find((loc) => loc.name === preferredLocation);
+        const locationName  = config['hunt.location'];
+        const location = locations.find((loc) => loc.name === locationName);
 
         if (is.none(location)) {
-            const message = `Cannot find the location "${preferredLocation}" set in the "bot.preferredLocation" config`;
+            const message = `Cannot find the location "${config['hunt.location']}" set in the "bot.location" config`;
             throw new Error(message);
         }
-
-        console.error(await page.currentUrl());
 
         const [money, team, pokeCount, ap] = await Promise.all([
             BotState.getMoneyInfo(page),
@@ -101,14 +98,13 @@ export class BotState implements State.Core {
             BotState.getAPInfo(page),
         ]);
 
-        await page.click(leaderSelector(team.team.leader.id));
+        await page.click(leaderSelector(team.leader.id));
 
         return new BotState(page, { 
             ...money,
             ...team,
             ...pokeCount,
             ...ap,
-            tasks: [],
             location,
             locations,
         });
@@ -152,7 +148,7 @@ export class BotState implements State.Core {
         return { pokemonCount, maxPokemonCount };
     }
 
-    private static async getTeamInfo (page: BotPage): StatePiece<'team'> {
+    private static async getTeamInfo (page: BotPage): StatePiece<'leader' | 'team'> {
         const SELECTOR = '#lista-druzyna .box.light-blue.round.poke-team-box';
         const elements = await page.getElems(SELECTOR);
 
@@ -182,10 +178,8 @@ export class BotState implements State.Core {
                     })))
             )
             .then((pokemons) => ({
-                team: {
-                    team: pokemons,
-                    leader: some(pokemons.find((pokemon) => pokemon.leader)),
-                }
+                team: pokemons,
+                leader: some(pokemons.find((pokemon) => pokemon.leader)),
             }));
     }
 

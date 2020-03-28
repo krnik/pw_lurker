@@ -1,7 +1,7 @@
 export const CACHE_DIR_NAME = '.cache';
 export const STATIC_DIR_NAME = 'static';
 export const CONFIG_FILE_NAME = 'config.json';
-export const CONFIG_SCHEMA_FILE_NAME = 'config.json';
+export const CONFIG_SCHEMA_FILE_NAME = 'config.schema.json';
 
 export const enum ROUTE {
     TEAM = 'druzyna',
@@ -21,13 +21,13 @@ export const enum TASK {
     BANK_WITHDRAW = 'task-withdraw-money',
     HEAL = 'task-heal-leader',
     HUNT = 'task-hunt',
-    WAIT = 'task-wait',
-    REFILL_PA = 'task-refill-pa',
+    NO_AP = 'task-no-ap',
 };
 
 export const enum POKEBALL {
     NETBALL = 'netball',
     LEVELBALL = 'levelball',
+    STARTERBALL = 'starterball',
 };
 
 export const enum HUNT_RESULT {

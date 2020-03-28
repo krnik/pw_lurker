@@ -2,7 +2,7 @@ import type {Task, App, Config} from "../types";
 import {TASK, ROUTE} from "../constants.js";
 import {toMoneyAmount, unreachable} from "../utils.js";
 
-async function healWithJuice (app: App, viewLeader: () => Promise<void>): Promise<boolean> {
+async function healWithJuice (app: App.Core, viewLeader: () => Promise<void>): Promise<boolean> {
     const SELECTOR = '#form_feed_poke_favourite_drink input[type=submit]';
 
     return await viewLeader()
@@ -14,7 +14,7 @@ async function healWithJuice (app: App, viewLeader: () => Promise<void>): Promis
         });
 }
 
-async function healWithHerb (app: App, viewLeader: () => Promise<void>): Promise<boolean> {
+async function healWithHerb (app: App.Core, viewLeader: () => Promise<void>): Promise<boolean> {
     const SELECTOR = '#form_feed_poke_revival_herb input[type=submit]';
 
     return await viewLeader()
@@ -26,8 +26,8 @@ async function healWithHerb (app: App, viewLeader: () => Promise<void>): Promise
         });
 }
 
-async function healWithMoney (app: App): Promise<boolean> {
-    const healHref = `${ROUTE.HOSPITAL}/${app.state.team.leader.id}`;
+async function healWithMoney (app: App.Core): Promise<boolean> {
+    const healHref = `${ROUTE.HOSPITAL}/${app.state.leader.id}`;
     const PRICE_SELECTOR = `.niceButton.full_width.tutorial-heal-button[href=${healHref}]`;
     const HEAL_SELECTOR = ``;
 
@@ -50,7 +50,7 @@ async function healWithMoney (app: App): Promise<boolean> {
     
 }
 
-async function healByWaiting (app: App): Promise<boolean> {
+async function healByWaiting (app: App.Core): Promise<boolean> {
     const minutes = 30 - (new Date().getMinutes() % 30);
 
     return await app.sleep(minutes * 60 * 1000)
@@ -61,7 +61,7 @@ async function healByWaiting (app: App): Promise<boolean> {
         });
 }
 
-function heal (method: Config.HealMethod): (app: App, viewLeader: () => Promise<void>) => Promise<boolean> {
+function heal (method: Config.HealMethod): (app: App.Core, viewLeader: () => Promise<void>) => Promise<boolean> {
     switch (method) {
         case 'juice': return healWithJuice; 
         case 'money': return healWithMoney;
@@ -74,8 +74,8 @@ function heal (method: Config.HealMethod): (app: App, viewLeader: () => Promise<
 export const HealLeader: Task = {
     name: TASK.HEAL,
     async perform (app, _params) {
-        const healMethods = await app.config('leader.healMethod');
-        const leaderPath = `${ROUTE.POKE_STATE}/${app.state.team.leader.id}`;
+        const healMethods = app.config['leader.healMethod'];
+        const leaderPath = `${ROUTE.POKE_STATE}/${app.state.leader.id}`;
         const viewLeader = async () => await app.page.ensurePath(leaderPath);
 
         for (const method of healMethods) {
