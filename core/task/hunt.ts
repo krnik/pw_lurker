@@ -31,20 +31,26 @@ export const Hunt: Task = {
                 await throwPokeballs(app);
                 await tryTakeItems(app);
                 break;
+
             case HUNT_RESULT.TEAM_FIGHT:
                 break;
+
             case HUNT_RESULT.ITEM:
                 // TODO: Gather stats
                 break;
+
             case HUNT_RESULT.TRADER:
                 // TODO: Save trade offer ids
                 // TODO: Handle trader
                 break;
+
             case HUNT_RESULT.MOVE_TUTOR:
                 break;
+
             case HUNT_RESULT.POKEMON_EGG:
                 // TODO: If incubator is empty, then place the egg in it
                 break;
+
             case HUNT_RESULT.NOTHING:
                 break;
         }

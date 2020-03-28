@@ -107,6 +107,14 @@ export class Bot implements App<Page.Handle> {
             return;
         }
 
+        if (this.state.isRefillNeeded(await this.config('hunt.locationPACost'))) {
+            this.state.tasks = [{
+                name: TASK.REFILL_PA,
+                params: {},
+            }];
+            return;
+        }
+
         if (this.state.actionPointsCount >= await this.config('hunt.locationPACost')) {
             this.state.tasks = [{
                 name: TASK.HUNT,
@@ -125,8 +133,6 @@ export class Bot implements App<Page.Handle> {
 
 async function start () {
     const browser = await p.launch({
-        headless: process.env.PW_BOT_HEADLESS === 'true',
-        devtools: true,
         defaultViewport: { width: 1200, height: 650 }
     });
 

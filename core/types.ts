@@ -24,6 +24,7 @@ export namespace Logger {
 
 export namespace Config {
     export type HealMethod = ('juice' | 'money' | 'herb' | 'wait'); 
+    export type RefillMethod = ('oak' | 'junipier' | 'wait');
     export type PokeballCondition = ('starter' | 'shiny' | 'always');
     export type PokeballThrowInfo = {
         when: PokeballCondition,
@@ -37,6 +38,7 @@ export namespace Config {
         'hunt.preferredLocation': string; // TODO: Use enum
         'hunt.locationPACost': number;
         'hunt.pokeballs': PokeballThrowInfo[];
+        'hunt.refillMethod': RefillMethod;
         'leader.minHealth': number;
         'leader.healMethod': HealMethod[];
     };
@@ -72,6 +74,7 @@ export namespace Page {
         clickNavigate (selector: string): Promise<void>;
         currentUrl (): Promise<string>;
         ensurePath (path: string): Promise<void>;
+        reload (): Promise<void>;
     }
 }
 

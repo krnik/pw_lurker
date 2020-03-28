@@ -56,8 +56,12 @@ export class BotState implements State.Core {
         return this.moneyAmount > 1000;
     }
 
-    public isLeaderHealthy (threshold: number): boolean {
-        return this.team.leader.hp >= threshold;
+    public isLeaderHealthy (minimum: number): boolean {
+        return this.team.leader.hp >= minimum;
+    }
+
+    public isRefillNeeded (minimum: number): boolean {
+        return this.actionPointsCount < minimum;
     }
 
     public async update (): Promise<void> {
@@ -160,7 +164,7 @@ export class BotState implements State.Core {
             .all(
                 elements.map((elem): Promise<State.Pokemon> => Promise
                     .all([
-                        elem.evaluate((e) => (console.log(e.classList), e.classList.contains('leader'))),
+                        elem.evaluate((e) => e.classList.contains('leader')),
                         elem.evaluate((e) => e.getAttribute('poke_id')).then(toNumber),
                         elem.$('.team-lvl')
                             .then((e) => some(e).evaluate((self) => self.textContent))

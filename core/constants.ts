@@ -10,6 +10,8 @@ export const enum ROUTE {
     HOSPITAL = 'lecznica',
     POKE_STATE = 'stan',
     WORK = 'praca',
+    START = 'start',
+    INVENTORY = 'plecak',
 };
 
 export const enum TASK {
@@ -20,6 +22,7 @@ export const enum TASK {
     HEAL = 'task-heal-leader',
     HUNT = 'task-hunt',
     WAIT = 'task-wait',
+    REFILL_PA = 'task-refill-pa',
 };
 
 export const enum POKEBALL {

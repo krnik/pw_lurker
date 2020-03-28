@@ -7,8 +7,6 @@ const FINISH_WORK = '#aktywna_praca [name=zakoncz_prace]';
 export const Wait: Task = {
     name: TASK.WAIT,
     async perform (app, _params) {
-        await app.page.ensurePath(ROUTE.WORK);
-
         const minutes = 32 - (new Date().getMinutes() % 30);
         const ms = minutes * 60 * 1000;
 
@@ -19,6 +17,7 @@ export const Wait: Task = {
         });
 
         if (await app.config('bot.workOnWait')) {
+            await app.page.ensurePath(ROUTE.WORK);
             const working = await app.page.clickNavigate(ACCEPT_WORK)
                 .then(() => true)
                 .catch(() => false);
@@ -29,7 +28,10 @@ export const Wait: Task = {
                 await app.page.clickNavigate(FINISH_WORK);
             }
         } else {
+            await app.page.ensurePath(ROUTE.START);
             await app.sleep(ms);
         }
+
+        await app.page.reload();
     },
 };

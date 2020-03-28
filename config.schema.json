@@ -29,6 +29,14 @@
             "type": "string",
             "minLength": 1
           },
+          "hunt.refillMethod": {
+            "type": "string",
+            "enum": [
+              "wait",
+              "oak",
+              "junipier"
+            ]
+          },
           "hunt.pokeballs": {
             "type": "array",
             "minLength": 1,
