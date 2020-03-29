@@ -6,7 +6,7 @@ import {BotExtern} from "./extern.js";
 import {getTask} from "../core/task/task.mod.js";
 import {TASK} from "../core/constants.js";
 import {BotState} from "./state.js";
-import {some} from '../core/utils.js';
+import {some, props} from '../core/utils.js';
 import {configuration} from './configuration.js';
 
 const p: typeof P = puppeteer;
@@ -36,6 +36,19 @@ export class Bot implements App.Core<Page.Handle> {
     public async act (): Promise<void> {
         try {
             await this.nextTasks();
+            this.logger.debug({
+                msg: 'Bot.act',
+                nextTasks: this.tasks,
+                state: props(this.state, [
+                    'maxPokemonCount',
+                    'pokemonCount',
+                    'maxActionPoinsCount',
+                    'actionPointsCount',
+                    'leader',
+                    'location',
+                    'moneyAmount'
+                ]),
+            });
 
             while (this.tasks.length > 0) {
                 const task = some(this.tasks[0]);
@@ -46,7 +59,6 @@ export class Bot implements App.Core<Page.Handle> {
                 });
 
                 await getTask(task.name).perform(this, task.params);
-                await this.state.refresh();
             }
 
             this.tasks.shift();
@@ -57,6 +69,7 @@ export class Bot implements App.Core<Page.Handle> {
                 tasks: this.tasks,
             });
         } finally {
+            await this.state.refresh();
             setTimeout(() => this.act(), 1000);
         }
     }
