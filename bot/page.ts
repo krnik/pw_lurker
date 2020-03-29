@@ -122,7 +122,7 @@ export async function getBotPage (browser: Browser, config: Config.Core): Promis
 
     await page.goto('https://pokewars.pl', { waitUntil: ['load'] });
 
-    const [login, password] = props(config, ['user.login', 'user.password']);
+    const { 'user.login': login, 'user.password': password } = props(config, ['user.login', 'user.password']);
 
     await page.type('[name=login]', login);
     await page.type('[name=pass]', password);

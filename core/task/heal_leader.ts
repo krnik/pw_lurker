@@ -51,9 +51,17 @@ async function healWithMoney (app: App.Core): Promise<boolean> {
 }
 
 async function healByWaiting (app: App.Core): Promise<boolean> {
-    const minutes = 30 - (new Date().getMinutes() % 30);
+    const minutes = new Date().getMinutes();
+    const time = (minutes >= 30 ? 61 : 32) - minutes;
+    const ms = time * 60 * 1000;
 
-    return await app.sleep(minutes * 60 * 1000)
+    app.logger.debug({
+        ms,
+        msg: 'Healing by waiting',
+        ends: new Date(Date.now() + ms)
+    });
+
+    return await app.sleep(time * 60 * 1000)
         .then(() => true)
         .catch((error) => {
             app.logger.error({ error, msg: 'Waiting healing failed' });
@@ -79,10 +87,17 @@ export const HealLeader: Task = {
         const viewLeader = async () => await app.page.ensurePath(leaderPath);
 
         for (const method of healMethods) {
+            app.logger.debug({
+                method,
+                msg: 'Trying to heal',
+            });
             if (await heal(method)(app, viewLeader)) {
                 break;
             }
         }
+
+        await app.page.ensurePath(ROUTE.START);
+        await app.page.reload();
     },
 };
 

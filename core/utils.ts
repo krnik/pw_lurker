@@ -39,11 +39,11 @@ export function combine<
 
 }
 
-export function props<T, K extends keyof T> (source: T, keys: K[]): T[K][] {
-    const values: T[K][] = [];
+export function props<T, K extends keyof T> (source: T, keys: K[]): Record<K, T[K]> {
+    const values: Record<K, T[K]> = {} as any;
 
     for (const key of keys) {
-        values.push(source[key]);
+        values[key] = source[key];
     }
     
     return values;
