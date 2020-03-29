@@ -59,9 +59,9 @@ export class Bot implements App.Core<Page.Handle> {
                 });
 
                 await getTask(task.name).perform(this, task.params);
+                this.tasks.shift();
             }
 
-            this.tasks.shift();
             this.logger.info({ msg: 'All tasks performed' });
         } catch (error) {
             this.logger.error({
