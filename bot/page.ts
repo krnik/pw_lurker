@@ -57,7 +57,7 @@ async function ensurePath(this: BotPage, path: string): Promise<void> {
 async function submitNavigate (this: BotPage, formName: string): Promise<void> {
     this.logger.debug({ formName, msg: 'Page.submit' });
     await Promise.all([
-        this.waitForNavigation({ waitUntil: ['load', 'networkidle2'] }),
+        this.waitForNavigation({ waitUntil: ['load'] }),
         this.evaluate(`${formName}.submit()`),
     ]);
 }
@@ -65,7 +65,13 @@ async function submitNavigate (this: BotPage, formName: string): Promise<void> {
 async function clickNavigate (this: BotPage, selector: string): Promise<void> {
     this.logger.debug({ selector, msg: 'Page.clickNavigate' });
     await Promise.all([
-        this.waitForNavigation({ waitUntil: ['load', 'networkidle2'] }),
+        this.waitForNavigation({ waitUntil: ['load'] }).catch((error) => {
+            this.logger.error({
+                ...error,
+                msg: 'WaitForNavigation Error',
+            });
+            throw error;
+        }),
         this.click(selector),
     ]);
 }
@@ -114,7 +120,7 @@ export async function getBotPage (browser: Browser, config: Config.Core): Promis
 
     page.on('response', (response) => Cache.set(response));
 
-    await page.goto('https://pokewars.pl', { waitUntil: ['load', 'networkidle2'] });
+    await page.goto('https://pokewars.pl', { waitUntil: ['load'] });
 
     const [login, password] = props(config, ['user.login', 'user.password']);
 

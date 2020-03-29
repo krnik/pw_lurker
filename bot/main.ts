@@ -34,23 +34,31 @@ export class Bot implements App.Core<Page.Handle> {
     }
 
     public async act (): Promise<void> {
-        await this.nextTasks();
+        try {
+            await this.nextTasks();
 
-        while (this.tasks.length > 0) {
-            const task = some(this.tasks.shift());
+            while (this.tasks.length > 0) {
+                const task = some(this.tasks[0]);
 
-            this.logger.info({
-                msg: 'Executing task',
-                task: task.name,
+                this.logger.info({
+                    msg: 'Executing task',
+                    task: task.name,
+                });
+
+                await getTask(task.name).perform(this, task.params);
+                await this.state.refresh();
+            }
+
+            this.tasks.shift();
+            this.logger.info({ msg: 'All tasks performed' });
+        } catch (error) {
+            this.logger.error({
+                msg: 'Task execution failed',
+                tasks: this.tasks,
             });
-
-            await getTask(task.name).perform(this, task.params);
-            await this.state.refresh();
+        } finally {
+            setTimeout(() => this.act(), 1000);
         }
-
-        this.logger.info({ msg: 'All tasks performed' });
-
-        setTimeout(() => this.act(), 1000);
     }
 
     public async sleep (ms: number): Promise<void> {
