@@ -12,40 +12,40 @@ export interface BotPage extends BasePage {
 };
 
 async function getElem (this: BotPage, selector: string): Promise<Elem> {
-    this.logger.debug({ selector, msg: 'Page.getElem' });
+    this.logger.trace({ selector, msg: 'Page.getElem' });
     return await this.$(selector).then(some);
 }
 
 async function getElems (this: BotPage, selector: string): Promise<Elem[]> {
-    this.logger.debug({ selector, msg: 'Page.getElems' });
+    this.logger.trace({ selector, msg: 'Page.getElems' });
     return await this.$$(selector);
 }
 
 async function getAttr (this: BotPage, selector: string, attrName: string): Promise<Option<string>> {
-    this.logger.debug({ selector, attrName, msg: 'Page.getAttr' });
+    this.logger.trace({ selector, attrName, msg: 'Page.getAttr' });
     const elem = await this.getElem(selector);
     return await elem.evaluate((self, name) => self.getAttribute(name), attrName);
 }
 
 async function getAttrs (this: BotPage, selector: string, attrName: string): Promise<Option<string>[]> {
-    this.logger.debug({ selector, attrName, msg: 'Page.getAttrs' });
+    this.logger.trace({ selector, attrName, msg: 'Page.getAttrs' });
     const elems = await this.getElems(selector);
     return await Promise.all(elems.map((elem) => elem.evaluate((self, name) => self.getAttribute(name), attrName)));
 }
 
 async function getText (this: BotPage, selector: string): Promise<string> {
-    this.logger.debug({ selector, msg: 'Page.getText' });
+    this.logger.trace({ selector, msg: 'Page.getText' });
     const elem = await this.getElem(selector);
     return some(await elem.evaluate((self) => self.textContent));
 }
 
 async function currentUrl (this: BotPage): Promise<string> {
-    this.logger.debug({ msg: 'Page.currentUrl' });
+    this.logger.trace({ msg: 'Page.currentUrl' });
     return await this.evaluate(() => window.location.href).then(some);
 }
 
 async function ensurePath(this: BotPage, path: string): Promise<void> {
-    this.logger.debug({ path, msg: 'Page.ensurePath' });
+    this.logger.trace({ path, msg: 'Page.ensurePath' });
     const currentUrl = await this.currentUrl();
     const url = `https://gra.pokewars.pl/${path}`;
 
@@ -55,7 +55,7 @@ async function ensurePath(this: BotPage, path: string): Promise<void> {
 }
 
 async function submitNavigate (this: BotPage, formName: string): Promise<void> {
-    this.logger.debug({ formName, msg: 'Page.submit' });
+    this.logger.trace({ formName, msg: 'Page.submit' });
     await Promise.all([
         this.waitForNavigation({ waitUntil: ['load'] }),
         this.evaluate(`${formName}.submit()`),
@@ -63,7 +63,7 @@ async function submitNavigate (this: BotPage, formName: string): Promise<void> {
 }
 
 async function clickNavigate (this: BotPage, selector: string): Promise<void> {
-    this.logger.debug({ selector, msg: 'Page.clickNavigate' });
+    this.logger.trace({ selector, msg: 'Page.clickNavigate' });
     await Promise.all([
         this.waitForNavigation({ waitUntil: ['load'] }).catch((error) => {
             this.logger.error({
