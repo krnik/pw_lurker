@@ -18,19 +18,11 @@ class CacheBase {
         this.ignored.add(url);
         this.ignoredList.push(url);
 
-        this.logger.trace({
-            ignoredCount: this.ignored.size,
-            msg: 'Ignoring URL',
-        });
-
         if (this.ignoredList.length > 400) {
             setTimeout(() => {
                 while (this.ignoredList.length > 400) {
                     const entry = this.ignoredList.shift();
-                    this.logger.trace({
-                        entry,
-                        msg: 'Removing cached ignore entry',
-                    });
+
                     if (entry !== undefined) {
                         this.ignored.delete(entry);
                     }
@@ -48,13 +40,6 @@ class CacheBase {
         const contentType = res.headers()['content-type'];
         const shouldCache = this.urlValid(url)
             && this.MIMES.some((mime) => mime.test(contentType));
-
-        this.logger.trace({
-            msg: 'Should cache',
-            contentType,
-            url,
-            shouldCache,
-        });
 
         if (!shouldCache) {
             this.ignore(url);
