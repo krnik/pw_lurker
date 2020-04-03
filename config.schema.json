@@ -49,14 +49,24 @@
                   "type": "string",
                   "enum": [
                     "netball",
+                    "starterball",
+                    "warsball",
                     "levelball"
                   ]
+                },
+                "eq": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 1
+                  }
                 },
                 "when": {
                   "type": "string",
                   "enum": [
                     "starter",
                     "shiny",
+                    "name",
                     "always"
                   ]
                 }

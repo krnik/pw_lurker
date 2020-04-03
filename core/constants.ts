@@ -28,6 +28,7 @@ export const enum POKEBALL {
     NETBALL = 'netball',
     LEVELBALL = 'levelball',
     STARTERBALL = 'starterball',
+    WARSBALL = 'warsball',
 };
 
 export const enum HUNT_RESULT {

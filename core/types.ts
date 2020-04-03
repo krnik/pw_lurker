@@ -25,9 +25,10 @@ export namespace Logger {
 export namespace Config {
     export type HealMethod = ('juice' | 'money' | 'herb' | 'wait'); 
     export type NoAPBehaviour = ('oak' | 'junipier' | 'wait');
-    export type PokeballCondition = ('starter' | 'shiny' | 'always');
+    export type PokeballCondition = ('starter' | 'shiny' | 'always' | 'name' | 'type');
     export type PokeballThrowInfo = {
         when: PokeballCondition,
+        eq?: string[];
         name: POKEBALL,
     };
 
@@ -35,7 +36,7 @@ export namespace Config {
         'user.password': string;
         'user.login': string;
         'bot.workWhileWaiting': boolean;
-        'hunt.location': string; // TODO: Use enum
+        'hunt.location': string;
         'hunt.locationAPCost': number;
         'hunt.noAP': NoAPBehaviour;
         'hunt.pokeballs': PokeballThrowInfo[];

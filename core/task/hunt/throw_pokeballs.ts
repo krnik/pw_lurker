@@ -1,4 +1,4 @@
-import type { App } from "../../types";
+import type { App, Config } from "../../types";
 import {some} from "../../utils.js";
 
 async function wasCaught (app: App.Core): Promise<boolean> {
@@ -30,7 +30,56 @@ async function hasPokeball (app: App.Core, pokeball: string): Promise<boolean> {
 //       "when": "always"
 //     }
 
-export async function throwPokeballs (app: App.Core): Promise<void> {
+const STARTERS = [
+    'bulbasaur',
+    'charmander',
+    'squirtle',
+    'chikorita',
+    'cyndaquil',
+    'totodile',
+    'trecko',
+    'torchic',
+    'mudkip',
+    'turtwig',
+    'chimchar',
+    'piplup',
+    'snivy',
+    'tepig',
+    'oshawott',
+    'chespin',
+    'fennekin',
+    'froakie',
+    'rowlet',
+    'litten',
+    'popplio',
+    'grookey',
+    'scorbunny',
+    'sobble',
+];
+
+function shouldThrow (pokeball: Config.PokeballThrowInfo, pokemon: { name: string, level: number, types: string[] }): boolean {
+    switch (pokeball.when) {
+        case 'always':
+            return true;
+
+        case 'starter':
+            return STARTERS.includes(pokemon.name);
+
+        case 'shiny':
+            return pokemon.name.startsWith('shiny');
+
+        case 'name':
+            return Array.isArray(pokeball.eq) && pokeball.eq.includes(pokeball.name);
+
+        case 'type':
+            return Array.isArray(pokeball.eq) && pokeball.eq.some((type) => pokemon.types.includes(type));
+
+        default:
+            return false;
+    }
+}
+
+export async function throwPokeballs (app: App.Core, info: { name: string, level: number, types: string[] }): Promise<void> {
     const pokeballs = app.config['hunt.pokeballs'].slice();
 
     while (pokeballs.length > 0) {
@@ -38,6 +87,7 @@ export async function throwPokeballs (app: App.Core): Promise<void> {
 
         app.logger.info({
             pokeball,
+            pokemon: info,
             msg: 'Next Pokeball',
         });
 
@@ -46,7 +96,16 @@ export async function throwPokeballs (app: App.Core): Promise<void> {
                 pokeball,
                 msg: 'Out of pokeballs',
             });
-            break;
+            continue;
+        }
+
+        if (!shouldThrow(pokeball, info)) {
+            app.logger.info({
+                pokeball,
+                pokemon: info,
+                msg: 'Skipping pokeball due to different requirements',
+            });
+            continue;
         }
 
         if (['netball'].includes(pokeball.name)) {

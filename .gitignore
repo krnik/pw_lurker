@@ -3,3 +3,4 @@
 .ts_build
 /.cache
 config.json
+/snaps

@@ -1,5 +1,31 @@
 import type {App} from "../../types";
 import {HUNT_RESULT} from "../../constants.js";
+import {toNumber, some} from "../../utils.js";
+
+type PokeInfo = {
+    name: string;
+    types: string[];
+    level: number;
+};
+
+export async function getPokeInfo (app: App.Core): Promise<PokeInfo> {
+    const [pokeName, typeClasses, level] = await Promise.all([
+        app.page.getText('.loc-poke .poke-name'),
+        app.page.getAttr('.loc-poke .type', 'class').then(some),
+        app.page.getText('.loc-poke .two_cols tr:first-child td:last-child').then(toNumber),
+    ]);
+
+    const types = typeClasses
+        .toLowerCase()
+        .split(' ')
+        .filter((cl) => !cl.startsWith('type'));
+
+    return {
+        level,
+        types,
+        name: pokeName.toLowerCase().trim().replace(' ', '-'),
+    };
+}
 
 async function isPokemonEncounter (app: App.Core): Promise<boolean> {
     return await app.page.getElems('.loc-poke').then((elems) => elems.length !== 0);
@@ -37,6 +63,9 @@ async function isTrader (app: App.Core): Promise<boolean> {
     return await app.page.getElems(selector).then((elems) => elems.length !== 0);
 }
 
+async function getFoundItem (app: App.Core): Promise<string> {
+    return app.page.getAttr('.found_item_bg img', 'src').then(some);
+}
 
 export async function getHuntResult (app: App.Core): Promise<HUNT_RESULT> {
     const [
@@ -70,6 +99,10 @@ export async function getHuntResult (app: App.Core): Promise<HUNT_RESULT> {
     }
 
     if (item) {
+        app.logger.info({
+            item: await getFoundItem(app),
+            msg: 'Found item',
+        });
         return HUNT_RESULT.ITEM;
     }
 

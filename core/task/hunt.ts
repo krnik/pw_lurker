@@ -1,6 +1,6 @@
 import { Task } from "../types";
 import { TASK, HUNT_RESULT } from "../constants.js";
-import { getHuntResult, tryTakeItems } from './hunt/hunt_result.js';
+import { getHuntResult, tryTakeItems, getPokeInfo } from './hunt/hunt_result.js';
 import {selectLeaderToFight, isLeaderVictorious} from "./hunt/fight.js";
 import {throwPokeballs} from "./hunt/throw_pokeballs.js";
 
@@ -20,13 +20,14 @@ export const Hunt: Task = {
 
         switch (huntResult) {
             case HUNT_RESULT.POKEMON_ENCOUNTER:
+                const pokeInfo = await getPokeInfo(app);
                 await selectLeaderToFight(app);
                 
                 if (!(await isLeaderVictorious(app))) {
                     break;
                 }
 
-                await throwPokeballs(app);
+                await throwPokeballs(app, pokeInfo);
                 await tryTakeItems(app);
                 break;
 
