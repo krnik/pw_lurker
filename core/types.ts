@@ -54,6 +54,7 @@ export namespace Extern {
 
     export interface Core {
         evolve (pokemonId: number): Promise<Result>;
+        lockShiny (): Promise<void>;
         changePanelTab (tabName: TabName, updateContent: boolean): Promise<Result>;
     };
 }

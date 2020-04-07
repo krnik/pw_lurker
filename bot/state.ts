@@ -123,7 +123,7 @@ export class BotState implements State.Core {
     }
 
     private static async getMoneyInfo (page: BotPage): StatePiece<'moneyAmount'> {
-        const AMOUNT = '#money';
+        const AMOUNT = '#info-box-content div table tbody tr:first-of-type td:last-child';
 
         return {
             moneyAmount: await page.getText(AMOUNT).then(toMoneyAmount),

@@ -30,6 +30,19 @@ function createLog (tag) {
   };
 }
 
+function lockShiny () {
+  return new Promise((resolve) => {
+    Array.from(document.querySelectorAll('.rezerwa-box'))
+      .map((box) => {
+        const nameElem = box.querySelector('.r-title');
+        if (nameElem && nameElem.textContent.toLowerCase().includes('shiny')) {
+          document.querySelector('a[onclick*="team_move"]').click();
+        }
+      });
+    resolve();
+  });
+}
+
 $(document).ready(function() {
   setCookie("ps", "");
   start();
@@ -1428,11 +1441,35 @@ function ball_lock_unlock(id) {
   });
 }
 
+function checkAdvEvo (id) {
+  const evolutions = [
+    ['wurmple', 266],
+  ];
+
+  const boxes = Array.from(document.querySelectorAll('.rezerwa-box'));
+  for (const box of boxes) {
+    if (!box.querySelector(`[onclick*="${id}"]`)) {
+      continue;
+    }
+    const pokemonName = box.querySelector('.r-title').innerText.trim().toLowerCase();
+    
+    const evo = evolutions.find(([name]) => pokemonName.includes(name));
+    if (evo) {
+      return () => evolve_advanced(id, evo[1]);
+    }
+  }
+
+  return null;
+}
+
 function evolve(id) {
   setMp();
   const log = createLog(`evolve:${id}`);
-
   log.push('Execution started');
+
+  const adv = checkAdvEvo(id);
+
+  if (adv) return adv();
 
   return new Promise(async (resolve) => {
     $.ajax({

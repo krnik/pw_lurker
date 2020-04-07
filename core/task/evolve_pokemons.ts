@@ -5,12 +5,12 @@ import {some, toNumber} from "../utils.js";
 const EVOLUTION_BTN = '#poke_content a[onclick^=evolve]';
 const ID_REGEX = /^.*\((\d+)\).*$/;
 
-// TODO: Support wurmple evolution
 export const EvolvePokemons: Task = {
     name: TASK.EVOLVE_POKEMONS,
     async perform (app, _params) {
         await app.page.ensurePath(ROUTE.TEAM);
 
+        await app.extern.lockShiny();
         const noFurtherEvolutions = new Set();
 
         for (let i = 0; i < 3; i++) {
