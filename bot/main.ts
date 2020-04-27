@@ -4,7 +4,7 @@ import type {App, Page, Config, Logger, Extern, Of} from "../core/types";
 import {BotPage, getBotPage} from "./page.js";
 import {BotExtern} from "./extern.js";
 import {getTask} from "../core/task/task.mod.js";
-import {TASK} from "../core/constants.js";
+import {TASK, ROUTE} from "../core/constants.js";
 import {BotState} from "./state.js";
 import {some, props} from '../core/utils.js';
 import {configuration} from './configuration.js';
@@ -68,6 +68,7 @@ export class Bot implements App.Core<Page.Handle> {
                 msg: 'Task execution failed',
                 tasks: this.tasks,
             });
+            await this.page.ensurePath(ROUTE.START);
         } finally {
             await this.state.refresh();
             setTimeout(() => this.act(), 1000);
@@ -154,12 +155,14 @@ export class Bot implements App.Core<Page.Handle> {
 
 async function start () {
     const headless = process.argv.indexOf('-w') === -1;
+    // @ts-ignore
     const browser = await p.launch({
         headless,
+        devtools: true,
         defaultViewport: { width: 1200, height: 650 }
     });
 
-    await Bot.create(browser).then((bot) => bot.act());
+    await Bot.create(browser);
 }
 
 start();

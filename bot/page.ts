@@ -57,7 +57,7 @@ async function ensurePath(this: BotPage, path: string): Promise<void> {
 async function submitNavigate (this: BotPage, formName: string): Promise<void> {
     this.logger.trace({ formName, msg: 'Page.submit' });
     await Promise.all([
-        this.waitForNavigation({ waitUntil: ['load'] }),
+        this.waitForNavigation(),
         this.evaluate(`${formName}.submit()`),
     ]);
 }
@@ -65,7 +65,7 @@ async function submitNavigate (this: BotPage, formName: string): Promise<void> {
 async function clickNavigate (this: BotPage, selector: string): Promise<void> {
     this.logger.trace({ selector, msg: 'Page.clickNavigate' });
     await Promise.all([
-        this.waitForNavigation({ waitUntil: ['load'] }).catch((error) => {
+        this.waitForNavigation().catch((error) => {
             this.logger.error({
                 ...error,
                 msg: 'WaitForNavigation Error',
@@ -105,6 +105,10 @@ export async function getBotPage (browser: Browser, config: Config.Core): Promis
     page.on('request', async (request) => {
         const url = request.url();
 
+        if (url.includes('chat.js')) {
+            return await request.abort('blockedbyclient');
+        }
+
         if (url.includes('general.js')) {
             return await request.respond({
                 status: 200,
@@ -120,7 +124,7 @@ export async function getBotPage (browser: Browser, config: Config.Core): Promis
 
     page.on('response', (response) => Cache.set(response));
 
-    await page.goto('https://pokewars.pl', { waitUntil: ['load'] });
+    await page.goto('https://pokewars.pl');
 
     const { 'user.login': login, 'user.password': password } = props(config, ['user.login', 'user.password']);
 

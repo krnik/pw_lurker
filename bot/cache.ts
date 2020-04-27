@@ -4,12 +4,13 @@ import type {Response} from 'puppeteer';
 import { some } from '../core/utils.js';
 import { CACHE_DIR_NAME, STATIC_DIR_NAME } from '../core/constants.js';
 import { logger } from './utils/logger.js';
+import {resolveRoot} from '../core/paths.js';
 
 class CacheBase {
     static REGEX: RegExp = /^https?:\/\/(gra\.)?pokewars.pl\/(?<route>.+)(\?[\w\W]*)?$/i;
     static MIMES: RegExp[] = [/^image\/\w+$/];
-    static CACHE_PATH = resolve(process.cwd(), CACHE_DIR_NAME);
-    static STATIC_PATH = resolve(process.cwd(), STATIC_DIR_NAME);
+    static CACHE_PATH = resolveRoot([CACHE_DIR_NAME]);
+    static STATIC_PATH = resolveRoot([STATIC_DIR_NAME]);
     static logger = logger;
     static ignored: Set<string> = new Set();
     static ignoredList: string[] = [];
@@ -64,10 +65,13 @@ class CacheBase {
         this.items = new Set(readdirSync(CacheBase.CACHE_PATH));
         this.staticItems = new Map();
 
-        const staticFiles = readdirSync(CacheBase.STATIC_PATH);
-        for (const file of staticFiles) {
-            this.staticItems.set(file, readFileSync(resolve(CacheBase.STATIC_PATH, file)));
-        }
+        const original = readFileSync(resolve(
+            CacheBase.STATIC_PATH, 'general.js'
+        ));
+        const inject = readFileSync(resolveRoot(['dist/inject.js']));
+        this.staticItems.set('general.js', Buffer.from(
+            original.toString() + '\n' + inject.toString()
+        ));
     }
 
     has (url: string): boolean {

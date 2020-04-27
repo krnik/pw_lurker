@@ -1,4 +1,4 @@
-import * as Pino from 'pino';
+import Pino from 'pino';
 
-export const logger: ReturnType<typeof Pino> = (Pino as any).default();
+export const logger = Pino();
 logger.level = process.env.BOT_LOG_LEVEL || 'debug';

@@ -2,23 +2,22 @@
   "include": [
     "./bot",
     "./core",
-    "./static"
+    "./static",
+    "./inject"
   ],
   "exclude": [],
   "compilerOptions": {
     "allowJs": true,
     "incremental": true,
     "target": "ESNext",
-    "module": "ESNext",
+    "module": "CommonJS",
     "moduleResolution": "node",
     "declaration": true,
     "declarationMap": true,
     "sourceMap": true,
     "outDir": "./dist",
     "composite": true,
-    "tsBuildInfoFile": "./.ts_build",
     "strict": true,
-    "noEmit": false,
     "noImplicitAny": true,
     "strictNullChecks": true,
     "strictFunctionTypes": true,
@@ -30,7 +29,7 @@
     "noUnusedParameters": true,
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
-    "esModuleInterop": false,
+    "esModuleInterop": true,
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
     "forceConsistentCasingInFileNames": true

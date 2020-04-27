@@ -1,4 +1,3 @@
-import { Page, ElementHandle } from "puppeteer";
 import { TASK, POKEBALL } from "./constants";
 
 export type None = null | undefined;
@@ -46,73 +45,58 @@ export namespace Config {
 }
 
 export namespace Extern {
-    export type Result = {
-        success: boolean;
-        log: string[];
-    }[];
-    export type TabName = 'team' | 'catch' | 'oak' | 'daily' | 'event' | 'stow_quest' | 'profesor_samson';
-
     export interface Core {
-        evolve (pokemonId: number): Promise<Result>;
-        lockShiny (): Promise<void>;
-        changePanelTab (tabName: TabName, updateContent: boolean): Promise<Result>;
-    };
-}
+        getAPInfo (): Promise<State.AP>;
+        getPokemonCountInfo (): Promise<State.Reserve>;
+        getAvailableLocations (): Promise<State.Loc[]>;
+        getLeaderHP (): Promise<State.HP>;
+        getTeamInfo (): Promise<State.Pokemon[]>;
+        getMoneyInfo (): Promise<number>;
+        evaluate<T> (fn: () => T): Promise<T>;
+        evolve (pokemonId: number): Promise<void>;
+        evolveAdvanced (pokemonId: number, formId: number): Promise<void>;
+        moveToPokebox (pokemonId: number): Promise<void>;
+        getReservePokemons (): Promise<State.ReservePokemon[]>;
+        setPanelTabToTeam (): Promise<void>;
 
-export namespace Page {
-    export type Elem = Element;
-    export type Handle = ElementHandle<Elem>;
-    export type ElemResult = Or<Elem, Handle>;
-
-    export interface Core<R extends ElemResult> {
-        getElem (selector: string): Promise<R>;
-        getElems (selector: string): Promise<R[]>;
-        getText (selector: string): Promise<string>;
-        getAttr (selector: string, attrName: string): Promise<Option<string>>;
-        getAttrs (selector: string, attrName: string): Promise<Option<string>[]>;
+        // TODO: implement
+        type (selector: string, value: string): Promise<void>;
         click (selector: string): Promise<void>;
-        type (selector: string, text: string): Promise<void>;
-        submitNavigate (formName: string): Promise<void>;
-        clickNavigate (selector: string): Promise<void>;
-        currentUrl (): Promise<string>;
-        ensurePath (path: string): Promise<void>;
+        clickAndNavigate (selector: string): Promise<void>;
+        submitAndNavigate (formName: string): Promise<void>;
+        getPathname (pathname: string): Promise<string>;
+        setPathname (pathname: string): Promise<string>;
+        ensurePathname (pathname: string): Promise<void>;
         reload (): Promise<void>;
-    }
+    };
 }
 
 export namespace State {
-    export type Pokemon = {
-        maxHP: number;
-        hp: number;
-        level: number;
-        id: number;
-        leader: boolean;
-    };
-
-    export type Location = {
-        name: string;
-        text: string;
-    };
+    export type Reserve = { current: number, max: number };
+    export type AP = { current: number, max: number };
+    export type Loc = { original: string, name: string };
+    export type HP = { current: number, max: number };
+    export type Pokemon = { name: string, leader: boolean, level: number, id: number, hp: HP };
+    export type ReservePokemon = Omit<Pokemon, 'hp' | 'leader'>;
 
     export interface Core {
-        actionPointsCount: number;
-        maxActionPoinsCount: number;
-        pokemonCount: number;
-        maxPokemonCount: number;
-        moneyAmount: number;
+        reserve: Reserve;
+        ap: AP;
+        location: Loc;
+        locations: Loc[];
         leader: Pokemon;
         team: Pokemon[];
-        location: Location;
-        locations: Location[];
+        money: number;
 
+        /* Function that mutates its invocation context so that the state reflects the state presented on the website. */
         refresh (): Promise<void>;
     };
 }
 
-export interface Task<R extends Page.ElemResult = Page.ElemResult> {
+export interface Task {
     name: TASK;
 
-    perform (app: App.Core<R>, params?: Of<App.Task, 'params'>): Promise<void>;
+    perform (app: App.Core, params?: Of<App.Task, 'params'>): Promise<void>;
 }
 
 export namespace App {
@@ -121,9 +105,8 @@ export namespace App {
         params: { [k: string]: Or<number, string> };
     };
 
-    export interface Core<R extends Page.ElemResult = Page.ElemResult> {
+    export interface Core {
         state: State.Core;
-        page: Page.Core<R>;
         logger: Logger.Core;
         extern: Extern.Core;
         config: Config.Core;

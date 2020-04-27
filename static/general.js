@@ -16,7 +16,6 @@ var mpps = [];
 var time_quest_interval;
 var assoc_quest_interval;
 
-
 function createLog (tag) {
   return {
     _log: [`[${tag}]`],
@@ -1992,9 +1991,8 @@ function chat_user_menager(id) {
   });
 }
 
+window.changePanelTab = changePanelTab;
 function changePanelTab(tab_name, update_content) {
-  const log = createLog('changePanelTab');
-
   return new Promise((resolve, reject) => {
     $.ajax({
       url: "/ajax_panel",
@@ -2005,20 +2003,15 @@ function changePanelTab(tab_name, update_content) {
       },
       type: "post",
       success: function(output) {
-        stop_time_quest_interval();
-
         if (output.trim() != "") $("#info_col").html(output);
-
         if (output.trim() != "" || update_content == false) {
           $(".panel_tab_box .panel_tab").removeClass("active");
           $(".panel_tab_box .panel_tab." + tab_name + "_icon").addClass("active");
         }
-
-        resolve([{ success: true, log: log.consume() }]);
+        resolve();
       },
-      error: function(error) {
-        log.push(String(error));
-        reject([{ success: false, log: log.consume() }]);
+      error: function() {
+        resolve();
       }
     });
   });
