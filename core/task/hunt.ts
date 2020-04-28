@@ -9,7 +9,7 @@ const locactionSelector = (title: string) => `.location a[title="${title}"]`;
 export const Hunt: Task = {
     name: TASK.HUNT,
     async perform (app, _params) {
-        await app.page.clickNavigate(locactionSelector(app.state.location.text));
+        await app.extern.clickAndNavigate(locactionSelector(app.state.location.name));
 
         const huntResult = await getHuntResult(app);
 

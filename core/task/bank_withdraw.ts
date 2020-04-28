@@ -10,8 +10,8 @@ export const BankWithdraw: Task = {
     async perform (app, params) {
         const amount = is.num(some(some(params).amount));
 
-        await app.page.ensurePath(ROUTE.BANK);
-        await app.page.type(INPUT, amount.toString());
-        await app.page.clickNavigate(BTN);
+        await app.extern.ensurePathname(ROUTE.BANK);
+        await app.extern.type(INPUT, amount.toString());
+        await app.extern.clickAndNavigate(BTN);
     }
 };

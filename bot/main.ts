@@ -1,36 +1,29 @@
 // @ts-ignore
 import puppeteer, * as P from 'puppeteer';
-import type {App, Page, Config, Logger, Extern, Of} from "../core/types";
-import {BotPage, getBotPage} from "./page.js";
+import type {App, Config, Logger, Extern, Of} from "../core/types";
+import {getBotPage} from "./page.js";
 import {BotExtern} from "./extern.js";
 import {getTask} from "../core/task/task.mod.js";
 import {TASK, ROUTE} from "../core/constants.js";
 import {BotState} from "./state.js";
-import {some, props} from '../core/utils.js';
+import {some} from '../core/utils.js';
 import {configuration} from './configuration.js';
 
 const p: typeof P = puppeteer;
 
-export class Bot implements App.Core<Page.Handle> {
+export class Bot implements App.Core {
     public state: BotState;
     public extern: Extern.Core;
-    public page: BotPage;
     public logger: Logger.Core;
     public config: Config.Core;
     public tasks: App.Task[];
 
-    private constructor (page: BotPage, state: BotState, config: Config.Core) {
-        this.page = page;
+    private constructor (logger: Logger.Core, extern: BotExtern, state: BotState, config: Config.Core) {
         this.state = state;
-        this.logger = page.logger;
+        this.logger = logger;
         this.config = config;
-        this.extern = new BotExtern(page);
+        this.extern = extern;
         this.tasks = [];
-
-        if (!state.locations.some((loc) => loc.name === config['hunt.location'])) {
-            const message = `Cannot find the location "${config['hunt.location']}" set in the "bot.location" config`;
-            throw new Error(message);
-        }
     }
 
     public async act (): Promise<void> {
@@ -39,15 +32,6 @@ export class Bot implements App.Core<Page.Handle> {
             this.logger.debug({
                 msg: 'Bot.act',
                 nextTasks: this.tasks,
-                state: props(this.state, [
-                    'maxPokemonCount',
-                    'pokemonCount',
-                    'maxActionPoinsCount',
-                    'actionPointsCount',
-                    'leader',
-                    'location',
-                    'moneyAmount'
-                ]),
             });
 
             while (this.tasks.length > 0) {
@@ -68,7 +52,7 @@ export class Bot implements App.Core<Page.Handle> {
                 msg: 'Task execution failed',
                 tasks: this.tasks,
             });
-            await this.page.ensurePath(ROUTE.START);
+            await this.extern.ensurePathname(ROUTE.START);
         } finally {
             await this.state.refresh();
             setTimeout(() => this.act(), 1000);
@@ -123,7 +107,7 @@ export class Bot implements App.Core<Page.Handle> {
             return;
         }
 
-        if (this.state.actionPointsCount >= this.config['hunt.locationAPCost']) {
+        if (this.state.ap.current >= this.config['hunt.locationAPCost']) {
             this.tasks = [{
                 name: TASK.HUNT,
                 params: {},
@@ -147,9 +131,10 @@ export class Bot implements App.Core<Page.Handle> {
         const config = some(accounts.find((config) => config['user.login'].toLowerCase() === acc.toLowerCase()));
 
         const page = await getBotPage(browser, config);
-        const state = await BotState.create(page, config);
+        const extern = new BotExtern(page);
+        const state = await BotState.create(extern, config);
 
-        return new Bot(page, state, config);
+        return new Bot(page.logger, extern, state, config);
     }
 }
 

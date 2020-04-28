@@ -8,7 +8,7 @@ export async function selectLeaderToFight (app: App.Core): Promise<void> {
         msg: 'selectLeaderToFight',
     });
 
-    return await app.page.submitNavigate(formName);
+    return await app.extern.submitAndNavigate(formName);
 }
 
 export async function isLeaderVictorious (app: App.Core): Promise<boolean> {
@@ -19,5 +19,7 @@ export async function isLeaderVictorious (app: App.Core): Promise<boolean> {
         msg: 'isLeaderVictorious',
     });
 
-    return await app.page.getElems(selector).then((elems) => elems.length === 0);
+    return await app.extern.evaluateResult(() => window
+        .one('.col .infoBar.error', null)
+        .mapOrElse(() => false as boolean, () => true));
 }

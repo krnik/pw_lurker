@@ -5,6 +5,9 @@ declare global {
     export interface Window {
         one: typeof one;
         many: typeof many;
+        num: typeof num;
+        toMoneyAmount: typeof toMoneyAmount;
+        toName: typeof toName;
         getLeaderHP: typeof getLeaderHP;
         getMoneyInfo: typeof getMoneyInfo;
         getAPInfo: typeof getAPInfo;
@@ -29,7 +32,7 @@ namespace Info {
     export type Loc = { original: string, name: string };
     export type HP = { current: number, max: number };
     export type Pokemon = { name: string, leader: boolean, level: number, id: number, hp: HP };
-    export type ReservePokemon = Omit<Pokemon, 'hp' | 'leader'>;
+    export type ReservePokemon = { name: string, level: number, id: number, canEvolve: boolean };
     export type EncounterPokemon = { name: string, types: string[], level: number, items: string[] };
 }
 
@@ -201,25 +204,18 @@ function intoAsyncResponse<A extends any[], T> (fn: (...args: A) => Promise<PWRe
 }
 
 export function getReservePokemons (): PWResult<Info.ReservePokemon[]> {
-    return PWResult
-        .flat(
-            Array.from(document.querySelectorAll<HTMLElement>('.box.rezerwa-box'))
-                .map(Elem.fromElement)
-                .map((box) => {
-                    const id = box.attr('poke_id').map(num).unwrap();
-                    const name = PWResult.errIfNull(
-                        box.childNodes()[0].textContent,
-                        () => PWError.new('RESERVE_POKEMONS_ERROR', { context: 'Retrieving name text node' }),
-                    ).unwrap();
-                    const level = box.one('.r-lvl').map((elem) => num(elem.text())).unwrap();
+    const boxes = Array.from(document.querySelectorAll<HTMLElement>('.box.rezerwa-box')).map(Elem.fromElement);
 
-                    return PWResult.ok({
-                        name,
-                        id,
-                        level,
-                    });
-                })
-        );
+    return PWResult.ok(
+        boxes.map((box) => {
+            const id = box.attr('poke_id').map(num).unwrap();
+            const level = box.one('.r-lvl').map((elem) => num(elem.text())).unwrap();
+            const name = box.one('.r-title').map((elem) => toName(elem.text().trim().replace(/\d+$/, '').trim())).unwrap();
+            const canEvolve = box.one('a[onclick^=evolve]').mapOrElse(() => true, () => false).unwrap();
+
+            return { id, level, name, canEvolve };
+        })
+    );
 }
 
 export function getEncounterPokemonInfo (): PWResult<Info.EncounterPokemon> {
@@ -370,8 +366,11 @@ export function submit (formName: string): PWResult<boolean> {
 }
 
 Object.assign(window, {
+    toName,
     one: intoResponse(one),
     many: intoResponse(many),
+    num: intoResponse(num),
+    toMoneyAmount: intoResponse(toMoneyAmount),
     getLeaderHP: intoResponse(getLeaderHP),
     getMoneyInfo: intoResponse(getMoneyInfo),
     getAPInfo: intoResponse(getAPInfo),

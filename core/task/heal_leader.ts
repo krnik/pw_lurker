@@ -1,6 +1,6 @@
 import type {Task, App, Config} from "../types";
 import {TASK, ROUTE} from "../constants.js";
-import {toMoneyAmount, unreachable} from "../utils.js";
+import {unreachable} from "../utils.js";
 
 async function healWithJuice (app: App.Core, viewLeader: () => Promise<void>): Promise<boolean> {
     const SELECTOR = '#form_feed_poke_favourite_drink input[type=submit]';
@@ -32,18 +32,20 @@ async function healWithMoney (app: App.Core): Promise<boolean> {
     const HEAL_SELECTOR = ``;
 
     return await app.extern.ensurePathname(ROUTE.HOSPITAL)
-        .then(() => app.extern.evaluate(() => window.one(PRICE_SELECTOR, null)))
-        .then((e) => {})
-        .then(() => app.extern.getText(PRICE_SELECTOR))
-        .then(toMoneyAmount)
+        .then(() => app.extern.evaluateResult(
+            (sel: string) => window
+                .one(sel, null)
+                .map((elem) => window.toMoneyAmount(elem.text())),
+            PRICE_SELECTOR
+        ))
         .then((amount) => {
-            if (amount <= app.state.moneyAmount) {
+            if (amount <= app.state.money) {
                 return;
             }
             return app.execute(TASK.BANK_WITHDRAW, { amount });
         })
-        .then(() => app.page.ensurePath(ROUTE.HOSPITAL))
-        .then(() => app.page.clickNavigate(HEAL_SELECTOR))
+        .then(() => app.extern.ensurePathname(ROUTE.HOSPITAL))
+        .then(() => app.extern.clickAndNavigate(HEAL_SELECTOR))
         .then(() => true)
         .catch((error) => {
             app.logger.error({ error, msg: 'Money healing failed' });
@@ -86,7 +88,7 @@ export const HealLeader: Task = {
     async perform (app, _params) {
         const healMethods = app.config['leader.healMethod'];
         const leaderPath = `${ROUTE.POKE_STATE}/${app.state.leader.id}`;
-        const viewLeader = async () => await app.page.ensurePath(leaderPath);
+        const viewLeader = async () => await app.extern.ensurePathname(leaderPath);
 
         for (const method of healMethods) {
             app.logger.debug({
@@ -98,8 +100,8 @@ export const HealLeader: Task = {
             }
         }
 
-        await app.page.ensurePath(ROUTE.START);
-        await app.page.reload();
+        await app.extern.ensurePathname(ROUTE.START);
+        await app.extern.reload();
     },
 };
 

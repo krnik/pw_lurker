@@ -79,7 +79,7 @@ export namespace State {
     export type Loc = { original: string, name: string };
     export type HP = { current: number, max: number };
     export type Pokemon = { name: string, leader: boolean, level: number, id: number, hp: HP };
-    export type ReservePokemon = Omit<Pokemon, 'hp' | 'leader'>;
+    export type ReservePokemon = { name: string, level: number, id: number, canEvolve: boolean };
     export type EncounterPokemon = { name: string, level: number, items: string[], types: string[] };
 
     export interface Core {

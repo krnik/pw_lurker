@@ -76,7 +76,10 @@ export class PWResult<T> {
         if (this.ok !== null) {
             try {
                 this.ok = fn(this.ok) as any;
+                this.err = null;
+
                 if (this.ok instanceof PWResult) {
+                    this.err = this.ok.err;
                     this.ok = this.ok.ok;
                 }
             } catch (error) {
@@ -91,10 +94,12 @@ export class PWResult<T> {
     public mapOrElse<U, E extends PWResult<U> | U> (mapFn: (current: T) => U, elseFn: () => E): PWResult<UnRes<U>> {
         if (this.ok === null) {
             this.ok = elseFn() as any;
+            this.err = null;
+
             if (this.ok instanceof PWResult) {
+                this.err = this.ok.err;
                 this.ok = this.ok.ok;
             }
-            this.err = null;
         } else {
             this.map(mapFn);
         }

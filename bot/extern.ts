@@ -15,100 +15,85 @@ export class BotExtern implements Extern.Core {
         };
     }
 
-    private static unwrapResult (prototype: any, name: string) {
-        const original = prototype[name];
-        return {
-            async value (this: BotExtern, ...args: any[]) {
-                const result = await original.call(this, ...args);
-                if (typeof result !== 'object' || result === null) {
-                    throw new Error('Expected Result object');
-                }
-                if (result.ok === null) {
-                    throw result.err;
-                }
-                return result.ok;
-            }
-        };
-    }
-
     public page: BotPage;
     
     public constructor (page: BotPage) {
         this.page = page;
     }
 
-    @BotExtern.unwrapResult
+    public async unwrapResult<T>(promise: Promise<PWResult<T>>): Promise<T> {
+        const result = (await promise) as unknown as { ok: T | null, err: null | object };
+        if (typeof result !== 'object' || result === null) {
+            throw new Error('Expected Result object');
+        }
+        if (result.ok === null) {
+            throw result.err;
+        }
+        return result.ok;
+    }
+
     public async getAPInfo (): Promise<State.AP> {
-        return await this.page.evaluate(() => window.getAPInfo());
+        return await this.unwrapResult(this.page.evaluate(() => window.getAPInfo()));
     }
 
-    @BotExtern.unwrapResult
     public async getPokemonCountInfo(): Promise<State.Reserve> {
-        return await this.page.evaluate(() => window.getPokemonCountInfo());
+        return await this.unwrapResult(this.page.evaluate(() => window.getPokemonCountInfo()));
     }
 
-    @BotExtern.unwrapResult
     public async getAvailableLocations (): Promise<State.Loc[]> {
-        return await this.page.evaluate(() => window.getAvailableLocations());
+        return await this.unwrapResult(this.page.evaluate(() => window.getAvailableLocations()));
     }
 
-    @BotExtern.unwrapResult
     public async getTeamInfo (): Promise<State.Pokemon[]> {
-        return await this.page.evaluate(() => window.getTeamInfo());
+        return await this.unwrapResult(this.page.evaluate(() => window.getTeamInfo()));
     }
 
-    @BotExtern.unwrapResult
     public async getLeaderHP (): Promise<State.HP> {
-        return await this.page.evaluate(() => window.getLeaderHP());
+        return await this.unwrapResult(this.page.evaluate(() => window.getLeaderHP()));
     }
 
-    @BotExtern.unwrapResult
     public async getMoneyInfo(): Promise<number> {
-        return await this.page.evaluate(() => window.getMoneyInfo());
+        return await this.unwrapResult(this.page.evaluate(() => window.getMoneyInfo()));
     }
 
-    @BotExtern.unwrapResult
     public async evaluateResult<T, A extends any[]> (fn: (...args: A) => PWResult<T>, ...args: A): Promise<T> {
-        return await this.page.evaluate(fn, ...args);
+        return await this.unwrapResult(this.page.evaluate<() => PWResult<T>>(fn as any, ...args));
     }
 
     public async evaluate<T, A extends any[]> (fn: (...args: A) => T, ...args: A): Promise<T> {
-        return await this.page.evaluate(fn, ...args);
+        return await (this.page.evaluate(fn as any, ...args) as Promise<T>);
     }
 
-    @BotExtern.unwrapResult
     public async getText (selector: string): Promise<string> {
-        return await this.page.evaluate((sel: string) => window.getText(sel), selector);
+        return await this.unwrapResult(this.page.evaluate((sel: string) => window.getText(sel), selector));
     }
 
-    @BotExtern.unwrapResult
     public async evolve (pokemonId: number): Promise<void> {
-        return await this.page.evaluate((id: number) => window.evolve(id), pokemonId);
+        await this.unwrapResult(this.page.evaluate((id: number) => window.evolve(id), pokemonId));
     }
 
-    @BotExtern.unwrapResult
     public async evolveAdvanced (pokemonId: number, nextFormId: number): Promise<void> {
-        return await this.page.evaluate((id: number, nextId: number) => window.evolveAdvanced(id, nextId), pokemonId, nextFormId);
+        await this.unwrapResult(
+            this.page.evaluate((id: number, nextId: number) => window.evolveAdvanced(id, nextId), pokemonId, nextFormId)
+        );
     }
 
-    @BotExtern.unwrapResult
     public async moveToPokebox(pokemonId: number): Promise<void> {
-        return await this.page.evaluate((id: number) => window.moveToPokebox(id), pokemonId);
+        await this.unwrapResult(
+            this.page.evaluate((id: number) => window.moveToPokebox(id), pokemonId)
+        );
     }
 
-    @BotExtern.unwrapResult
     public async getReservePokemons (): Promise<State.ReservePokemon[]> {
-        return await this.page.evaluate(() => window.getReservePokemons());
+        return await this.unwrapResult(this.page.evaluate(() => window.getReservePokemons()));
     }
 
-    @BotExtern.unwrapResult
     public async getEncounterPokemonInfo (): Promise<State.EncounterPokemon> {
-        return await this.page.evaluate(() => window.getEncounterPokemonInfo());
+        return await this.unwrapResult(this.page.evaluate(() => window.getEncounterPokemonInfo()));
     }
 
-    @BotExtern.unwrapResult
     public async setPanelTabToTeam (): Promise<void> {
-        return await this.page.evaluate(() => window.setPanelTabToTeam());
+        await this.unwrapResult(this.page.evaluate(() => window.setPanelTabToTeam()));
     }
 
     public async type (selector:string, text: string): Promise<void> {
@@ -125,9 +110,8 @@ export class BotExtern implements Extern.Core {
     }
 
     @BotExtern.waitForNavigation
-    @BotExtern.unwrapResult
     public async submitAndNavigate (formName: string): Promise<void> {
-        return this.page.evaluate((form: string) => window.submit(form), formName);
+        await this.unwrapResult(this.page.evaluate((form: string) => window.submit(form), formName));
     }
 
     public async getPathname (): Promise<string> {
@@ -136,7 +120,9 @@ export class BotExtern implements Extern.Core {
 
     @BotExtern.waitForNavigation
     public async setPathname (pathname: string): Promise<void> {
-        return this.page.evaluate((path: string) => window.location.pathname = path, pathname);
+        return await this.page.evaluate((path: string) => {
+            window.location.pathname = path;
+        }, pathname);
     }
 
     public async ensurePathname (pathname: string): Promise<void> {
