@@ -92,6 +92,10 @@ export class BotExtern implements Extern.Core {
         return await this.unwrapResult(this.page.evaluate(() => window.getEncounterPokemonInfo()));
     }
 
+    public async getPokeballInfo (): Promise<State.Pokeball[]> {
+        return await this.unwrapResult(this.page.evaluate(() => window.getPokeballInfo()));
+    }
+
     public async setPanelTabToTeam (): Promise<void> {
         await this.unwrapResult(this.page.evaluate(() => window.setPanelTabToTeam()));
     }

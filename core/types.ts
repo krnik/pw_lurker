@@ -61,6 +61,7 @@ export namespace Extern {
         moveToPokebox (pokemonId: number): Promise<void>;
         getReservePokemons (): Promise<State.ReservePokemon[]>;
         getEncounterPokemonInfo (): Promise<State.EncounterPokemon>;
+        getPokeballInfo (): Promise<State.Pokeball[]>;
         setPanelTabToTeam (): Promise<void>;
         type (selector: string, value: string): Promise<void>;
         click (selector: string): Promise<void>;
@@ -81,6 +82,7 @@ export namespace State {
     export type Pokemon = { name: string, leader: boolean, level: number, id: number, hp: HP };
     export type ReservePokemon = { name: string, level: number, id: number, canEvolve: boolean };
     export type EncounterPokemon = { name: string, level: number, items: string[], types: string[] };
+    export type Pokeball = { name: string, chance: number, quantity: number };
 
     export interface Core {
         reserve: Reserve;

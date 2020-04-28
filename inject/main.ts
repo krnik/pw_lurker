@@ -22,6 +22,7 @@ declare global {
         getEncounterPokemonInfo: typeof getEncounterPokemonInfo;
         moveToPokebox: typeof moveToPokebox;
         setPanelTabToTeam: typeof setPanelTabToTeam;
+        getPokeballInfo: typeof getPokeballInfo;
         submit: typeof submit;
     }
 }
@@ -34,6 +35,7 @@ namespace Info {
     export type Pokemon = { name: string, leader: boolean, level: number, id: number, hp: HP };
     export type ReservePokemon = { name: string, level: number, id: number, canEvolve: boolean };
     export type EncounterPokemon = { name: string, types: string[], level: number, items: string[] };
+    export type Pokeball = { name: string, chance: number, quantity: number };
 }
 
 function one<E extends HTMLElement> (selector: string, source: NullOr<string>): PWResult<Elem<E>> {
@@ -350,6 +352,30 @@ function setPanelTabToTeam (): Promise<PWResult<boolean>> {
     }));
 }
 
+export function getPokeballInfo (): PWResult<Info.Pokeball[]> {
+    const forms = many('form')
+        .map((elems) => elems
+            .filter((elem) => elem
+                .many('input[name=pokeball]').length > 0))
+        .unwrap();
+
+    return PWResult.ok(forms.map((form) => {
+        const name = form
+            .one('input[type=pokeball]')
+            .map((input) => input.attr('value'))
+            .map(toName)
+            .unwrap();
+        const description = form
+            .one('.lvl')
+            .map((elem) => elem.text().trim().replace(/\s+/g, '\n').replace('%', '').split('\n'))
+            .unwrap();
+
+        const chance = num(description[4]).unwrap();
+        const quantity = num(description[2].replace('.', '')).unwrap();
+        return { name, chance, quantity };
+    }));
+}
+
 export function submit (formName: string): PWResult<boolean> {
     const byName = `form[name="${formName}"]`;
     const byId = `form[id="${formName}"]`;
@@ -385,6 +411,7 @@ Object.assign(window, {
     teamGetPokemonList: intoAsyncResponse(teamGetPokemonList),
     moveToPokebox: intoAsyncResponse(moveToPokebox),
     setPanelTabToTeam: intoAsyncResponse(setPanelTabToTeam),
+    getPokeballInfo: intoResponse(getPokeballInfo),
     submit: intoResponse(submit),
 });
 
