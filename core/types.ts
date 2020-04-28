@@ -5,8 +5,6 @@ export type None = null | undefined;
 export type Some<T> = T;
 export type Or<T, Y> = T | Y;
 export type Option<T> = Or<Some<T>, None>;
-export type OrPromise<T> = Or<T, Promise<T>>;
-export type Callback<P extends any[] = any[], R = unknown> = (...args: P) => R;
 export type Of<T, K extends string & keyof T> = T[K];
 
 export namespace Logger {
@@ -22,6 +20,8 @@ export namespace Logger {
     }
 }
 
+// TODO: Add better pokeball handling
+// TODO: Add pokemon evo/selling settings
 export namespace Config {
     export type HealMethod = ('juice' | 'money' | 'herb' | 'wait'); 
     export type NoAPBehaviour = ('oak' | 'junipier' | 'wait');
@@ -96,6 +96,7 @@ export namespace State {
     };
 }
 
+// TODO: Use type union with 'name' discriminant.
 export interface Task {
     name: TASK;
 
@@ -103,6 +104,7 @@ export interface Task {
 }
 
 export namespace App {
+    // TODO: As above
     export type Task = {
         name: TASK;
         params: { [k: string]: Or<number, string> };

@@ -9,7 +9,7 @@ const locactionSelector = (title: string) => `.location a[title="${title}"]`;
 export const Hunt: Task = {
     name: TASK.HUNT,
     async perform (app, _params) {
-        await app.extern.clickAndNavigate(locactionSelector(app.state.location.name));
+        await app.extern.clickAndNavigate(locactionSelector(app.state.location.original));
 
         const huntResult = await getHuntResult(app);
 
@@ -47,7 +47,11 @@ export const Hunt: Task = {
                 break;
 
             case HUNT_RESULT.POKEMON_EGG:
-                // TODO: If incubator is empty, then place the egg in it
+                await app.extern
+                    .clickAndNavigate('input[type=submit][name="insert_egg_to_inkubator"]')
+                    .catch((error) => {
+                        app.logger.error({ error, msg: 'Error while inserting an egg to incubator' });
+                    });
                 break;
 
             case HUNT_RESULT.NOTHING:

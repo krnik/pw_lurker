@@ -1,5 +1,4 @@
-// @ts-ignore
-import puppeteer, * as P from 'puppeteer';
+import puppeteer, {Browser} from 'puppeteer';
 import type {App, Config, Logger, Extern, Of} from "../core/types";
 import {getBotPage} from "./page.js";
 import {BotExtern} from "./extern.js";
@@ -8,8 +7,6 @@ import {TASK, ROUTE} from "../core/constants.js";
 import {BotState} from "./state.js";
 import {some} from '../core/utils.js';
 import {configuration} from './configuration.js';
-
-const p: typeof P = puppeteer;
 
 export class Bot implements App.Core {
     public state: BotState;
@@ -29,16 +26,16 @@ export class Bot implements App.Core {
     public async act (): Promise<void> {
         try {
             await this.nextTasks();
-            this.logger.debug({
-                msg: 'Bot.act',
+            this.logger.info({
+                msg: 'Bot.act - staring',
                 nextTasks: this.tasks,
             });
 
             while (this.tasks.length > 0) {
                 const task = some(this.tasks[0]);
 
-                this.logger.info({
-                    msg: 'Executing task',
+                this.logger.debug({
+                    msg: 'Bot.act - executing task',
                     task: task.name,
                 });
 
@@ -46,13 +43,16 @@ export class Bot implements App.Core {
                 this.tasks.shift();
             }
 
-            this.logger.info({ msg: 'All tasks performed' });
+            this.logger.info({ msg: 'Bot.act - completed' });
         } catch (error) {
             this.logger.error({
-                msg: 'Task execution failed',
+                msg: 'Bot.act - task execution failed',
                 tasks: this.tasks,
+                error,
             });
             await this.extern.ensurePathname(ROUTE.START);
+            // TODO: Should it drop the taks or try to repeat the action?
+            this.tasks = [];
         } finally {
             await this.state.refresh();
             setTimeout(() => this.act(), 1000);
@@ -123,7 +123,7 @@ export class Bot implements App.Core {
         return;
     }
 
-    public static async create (browser: P.Browser): Promise<Bot> {
+    public static async create (browser: Browser): Promise<Bot> {
         const accounts = configuration.accounts;
 
         const index = some(process.argv.findIndex((arg) => arg === '-a'));
@@ -140,14 +140,16 @@ export class Bot implements App.Core {
 
 async function start () {
     const headless = process.argv.indexOf('-w') === -1;
-    // @ts-ignore
-    const browser = await p.launch({
+    const browser = await puppeteer.launch({
         headless,
         devtools: true,
         defaultViewport: { width: 1200, height: 650 }
     });
 
-    await Bot.create(browser);
+    await Bot.create(browser).then((bot) => {
+        bot.logger.info({ msg: 'Initialized bot instance' });
+        return bot.act();
+    });
 }
 
 start();

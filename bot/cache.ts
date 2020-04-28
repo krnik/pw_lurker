@@ -3,7 +3,6 @@ import {readdirSync, readFile, writeFile, readFileSync} from 'fs';
 import type {Response} from 'puppeteer';
 import { some } from '../core/utils.js';
 import { CACHE_DIR_NAME, STATIC_DIR_NAME } from '../core/constants.js';
-import { logger } from './utils/logger.js';
 import {resolveRoot} from '../core/paths.js';
 
 class CacheBase {
@@ -11,7 +10,6 @@ class CacheBase {
     static MIMES: RegExp[] = [/^image\/\w+$/];
     static CACHE_PATH = resolveRoot([CACHE_DIR_NAME]);
     static STATIC_PATH = resolveRoot([STATIC_DIR_NAME]);
-    static logger = logger;
     static ignored: Set<string> = new Set();
     static ignoredList: string[] = [];
 

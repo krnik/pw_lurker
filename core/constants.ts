@@ -24,6 +24,7 @@ export const enum TASK {
     NO_AP = 'task-no-ap',
 };
 
+// TODO: Add all pokeballs
 export const enum POKEBALL {
     NETBALL = 'netball',
     LEVELBALL = 'levelball',
@@ -31,6 +32,7 @@ export const enum POKEBALL {
     WARSBALL = 'warsball',
 };
 
+// TODO: Move to hunt task and replace with type union { type: 'item', item: 'mony' }
 export const enum HUNT_RESULT {
     POKEMON_ENCOUNTER = 'hunt-result-pokemon-encounter',
     POKEMON_EGG = 'hunt-result-pokemon-egg',
