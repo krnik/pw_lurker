@@ -4,18 +4,22 @@ import { Elem } from './elem';
 declare global {
     export interface Window {
         one: typeof one;
+        many: typeof many;
         getLeaderHP: typeof getLeaderHP;
         getMoneyInfo: typeof getMoneyInfo;
         getAPInfo: typeof getAPInfo;
         getPokemonCountInfo: typeof getPokemonCountInfo;
         getTeamInfo: typeof getTeamInfo;
         getAvailableLocations: typeof getAvailableLocations;
+        getText: typeof getText;
         evolve: typeof evolve;
         evolveAdvanced: typeof evolveAdvanced;
         teamGetPokemonList: typeof teamGetPokemonList;
         getReservePokemons: typeof getReservePokemons;
+        getEncounterPokemonInfo: typeof getEncounterPokemonInfo;
         moveToPokebox: typeof moveToPokebox;
         setPanelTabToTeam: typeof setPanelTabToTeam;
+        submit: typeof submit;
     }
 }
 
@@ -26,6 +30,7 @@ namespace Info {
     export type HP = { current: number, max: number };
     export type Pokemon = { name: string, leader: boolean, level: number, id: number, hp: HP };
     export type ReservePokemon = Omit<Pokemon, 'hp' | 'leader'>;
+    export type EncounterPokemon = { name: string, types: string[], level: number, items: string[] };
 }
 
 function one<E extends HTMLElement> (selector: string, source: NullOr<string>): PWResult<Elem<E>> {
@@ -44,11 +49,22 @@ function one<E extends HTMLElement> (selector: string, source: NullOr<string>): 
     return PWResult.errIfNull(option, noElem).map(Elem.fromElement);
 }
 
+function many<E extends HTMLElement> (selector: string): PWResult<Elem<E>[]> {
+    return PWResult.ok(
+        Array.from(document.querySelectorAll<E>(selector))
+            .map(Elem.fromElement)
+    );
+}
+
 function num(value: unknown): PWResult<number> {
     const num = Number(value);
     return typeof num === 'number' && num === num 
         ? PWResult.ok(num)
         : PWResult.err(PWError.numberConversion(value));
+}
+
+function getText (selector: string): PWResult<string> {
+    return one(selector, null).map((elem) => elem.text());
 }
 
 function toName (value: string): string {
@@ -206,6 +222,53 @@ export function getReservePokemons (): PWResult<Info.ReservePokemon[]> {
         );
 }
 
+export function getEncounterPokemonInfo (): PWResult<Info.EncounterPokemon> {
+    const TYPES = [
+        'normal',
+        'fire',
+        'fighting',
+        'water',
+        'flying',
+        'grass',
+        'poison',
+        'electric',
+        'ground',
+        'psychic',
+        'rock',
+        'ice',
+        'bug',
+        'dragon',
+        'ghost',
+        'dark',
+        'steel',
+        'fairy',
+    ];
+
+    const box = one('.loc-poke', null).unwrap();
+    const name = box.one('.poke-name').map((elem) => toName(elem.text())).unwrap();
+    const types = many('.loc-poke .type')
+        .map((elems) => elems.map((elem) => elem.classList().filter((t) => TYPES.includes(t))))
+        .unwrap()
+        .flat();
+    const level = box.one('.two_cols tbody tr:first-child td:last-child').map((elem) => num(elem.text())).unwrap();
+    const items = PWResult
+        .flat(box
+            .many<HTMLElement>('img[src*=items]')
+            .map((elem) => elem.attr('src'))
+        )
+        .map((sources) => sources
+            .map((source) => {
+                const chunks = source.split('/');
+                const name = chunks[chunks.length - 1];
+                return name && toName(name.replace('.png', ''));
+            })
+            .filter((source) => source)
+        )
+        .unwrap();
+
+    return PWResult.ok({ name, types, level, items });
+}
+
 export function evolve (id: number): Promise<PWResult<boolean>> {
     const data = { id, method: 'team_poke', func: 'evolve' };
 
@@ -291,8 +354,24 @@ function setPanelTabToTeam (): Promise<PWResult<boolean>> {
     }));
 }
 
+export function submit (formName: string): PWResult<boolean> {
+    const byName = `form[name="${formName}"]`;
+    const byId = `form[id="${formName}"]`;
+
+    return one<HTMLFormElement>(byName, null)
+        .mapOrElse(
+            (elem) => elem,
+            () => one<HTMLFormElement>(byId, null),
+        )
+        .map((form) => {
+            form.submit();
+            return true;
+        });
+}
+
 Object.assign(window, {
     one: intoResponse(one),
+    many: intoResponse(many),
     getLeaderHP: intoResponse(getLeaderHP),
     getMoneyInfo: intoResponse(getMoneyInfo),
     getAPInfo: intoResponse(getAPInfo),
@@ -300,10 +379,13 @@ Object.assign(window, {
     getTeamInfo: intoResponse(getTeamInfo),
     getAvailableLocations: intoResponse(getAvailableLocations),
     getReservePokemons: intoResponse(getReservePokemons),
+    getEncounterPokemonInfo: intoResponse(getEncounterPokemonInfo),
+    getText: intoResponse(getText),
     evolve: intoAsyncResponse(evolve),
     evolveAdvanced: intoAsyncResponse(evolveAdvanced),
     teamGetPokemonList: intoAsyncResponse(teamGetPokemonList),
     moveToPokebox: intoAsyncResponse(moveToPokebox),
     setPanelTabToTeam: intoAsyncResponse(setPanelTabToTeam),
+    submit: intoResponse(submit),
 });
 

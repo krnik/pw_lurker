@@ -19,13 +19,13 @@ export const NoAP: Task = {
 
         switch (behaviour) {
             case 'oak':
-                await app.page.ensurePath(ROUTE.INVENTORY);
-                await app.page.clickNavigate(OAK);
+                await app.extern.ensurePathname(ROUTE.INVENTORY);
+                await app.extern.clickAndNavigate(OAK);
                 break;
 
             case 'junipier':
-                await app.page.ensurePath(ROUTE.INVENTORY);
-                await app.page.clickNavigate(JUNIPIER);
+                await app.extern.ensurePathname(ROUTE.INVENTORY);
+                await app.extern.clickAndNavigate(JUNIPIER);
                 break;
 
             case 'wait':
@@ -39,19 +39,19 @@ export const NoAP: Task = {
                 });
 
                 if (work) {
-                    await app.page.ensurePath(ROUTE.WORK);
-                    const working = await app.page.clickNavigate(ACCEPT_WORK)
+                    await app.extern.ensurePathname(ROUTE.WORK);
+                    const working = await app.extern.clickAndNavigate(ACCEPT_WORK)
                         .then(() => true)
                         .catch(() => false);
                     await app.sleep(ms);
 
                     if (working) {
-                        await app.page.clickNavigate(FINISH_WORK);
+                        await app.extern.clickAndNavigate(FINISH_WORK);
                     }
                 } else {
-                    await app.page.ensurePath(ROUTE.START);
+                    await app.extern.ensurePathname(ROUTE.START);
                     await app.sleep(ms);
-                    await app.page.reload();
+                    await app.extern.reload();
                 }
 
                 break;

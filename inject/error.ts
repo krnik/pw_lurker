@@ -88,6 +88,20 @@ export class PWResult<T> {
         return this as any;
     }
 
+    public mapOrElse<U, E extends PWResult<U> | U> (mapFn: (current: T) => U, elseFn: () => E): PWResult<UnRes<U>> {
+        if (this.ok === null) {
+            this.ok = elseFn() as any;
+            if (this.ok instanceof PWResult) {
+                this.ok = this.ok.ok;
+            }
+            this.err = null;
+        } else {
+            this.map(mapFn);
+        }
+
+        return this as any;
+    }
+
     public unwrap (): T {
         if (this.ok !== null) {
             return this.ok;

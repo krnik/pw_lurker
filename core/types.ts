@@ -1,4 +1,5 @@
 import { TASK, POKEBALL } from "./constants";
+import {PWResult} from "../inject/error";
 
 export type None = null | undefined;
 export type Some<T> = T;
@@ -52,20 +53,21 @@ export namespace Extern {
         getLeaderHP (): Promise<State.HP>;
         getTeamInfo (): Promise<State.Pokemon[]>;
         getMoneyInfo (): Promise<number>;
-        evaluate<T> (fn: () => T): Promise<T>;
+        getText (selector: string): Promise<string>;
+        evaluateResult<T, A extends any[]> (fn: (...args: A) => PWResult<T>, ...args: A): Promise<T>;
+        evaluate<T, A extends any[]> (fn: (...args: A) => T, ...args: A): Promise<T>;
         evolve (pokemonId: number): Promise<void>;
         evolveAdvanced (pokemonId: number, formId: number): Promise<void>;
         moveToPokebox (pokemonId: number): Promise<void>;
         getReservePokemons (): Promise<State.ReservePokemon[]>;
+        getEncounterPokemonInfo (): Promise<State.EncounterPokemon>;
         setPanelTabToTeam (): Promise<void>;
-
-        // TODO: implement
         type (selector: string, value: string): Promise<void>;
         click (selector: string): Promise<void>;
         clickAndNavigate (selector: string): Promise<void>;
         submitAndNavigate (formName: string): Promise<void>;
         getPathname (pathname: string): Promise<string>;
-        setPathname (pathname: string): Promise<string>;
+        setPathname (pathname: string): Promise<void>;
         ensurePathname (pathname: string): Promise<void>;
         reload (): Promise<void>;
     };
@@ -78,6 +80,7 @@ export namespace State {
     export type HP = { current: number, max: number };
     export type Pokemon = { name: string, leader: boolean, level: number, id: number, hp: HP };
     export type ReservePokemon = Omit<Pokemon, 'hp' | 'leader'>;
+    export type EncounterPokemon = { name: string, level: number, items: string[], types: string[] };
 
     export interface Core {
         reserve: Reserve;

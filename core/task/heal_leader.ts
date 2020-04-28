@@ -6,7 +6,7 @@ async function healWithJuice (app: App.Core, viewLeader: () => Promise<void>): P
     const SELECTOR = '#form_feed_poke_favourite_drink input[type=submit]';
 
     return await viewLeader()
-        .then(() => app.page.clickNavigate(SELECTOR))
+        .then(() => app.extern.clickAndNavigate(SELECTOR))
         .then(() => true)
         .catch((error) => {
             app.logger.error({ error, msg: 'Juice healing failed' });
@@ -18,7 +18,7 @@ async function healWithHerb (app: App.Core, viewLeader: () => Promise<void>): Pr
     const SELECTOR = '#form_feed_poke_revival_herb input[type=submit]';
 
     return await viewLeader()
-        .then(() => app.page.clickNavigate(SELECTOR))
+        .then(() => app.extern.clickAndNavigate(SELECTOR))
         .then(() => true)
         .catch((error) => {
             app.logger.error({ error, msg: 'Herb healing failed' });
@@ -31,8 +31,10 @@ async function healWithMoney (app: App.Core): Promise<boolean> {
     const PRICE_SELECTOR = `.niceButton.full_width.tutorial-heal-button[href=${healHref}]`;
     const HEAL_SELECTOR = ``;
 
-    return await app.page.ensurePath(ROUTE.HOSPITAL)
-        .then(() => app.page.getText(PRICE_SELECTOR))
+    return await app.extern.ensurePathname(ROUTE.HOSPITAL)
+        .then(() => app.extern.evaluate(() => window.one(PRICE_SELECTOR, null)))
+        .then((e) => {})
+        .then(() => app.extern.getText(PRICE_SELECTOR))
         .then(toMoneyAmount)
         .then((amount) => {
             if (amount <= app.state.moneyAmount) {

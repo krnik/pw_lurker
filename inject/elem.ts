@@ -65,6 +65,10 @@ export class Elem<E extends HTMLElement = HTMLElement> {
         return this.element.classList.contains(value);
     }
 
+    public classList (): string[] {
+        return Array.from(this.element.classList.values());
+    }
+
     public childNodes (): NodeListOf<ChildNode> {
         return this.element.childNodes;
     }
@@ -76,5 +80,9 @@ export class Elem<E extends HTMLElement = HTMLElement> {
                 () => PWError.new('ELEM_NOT_FOUND', { selector }),
             )
             .map(Elem.fromElement);
+    }
+
+    public many<E extends HTMLElement> (selector: string): Elem<E>[] {
+        return Array.from(this.element.querySelectorAll<E>(selector)).map(Elem.fromElement);
     }
 }

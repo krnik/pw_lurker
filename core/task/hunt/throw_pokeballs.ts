@@ -2,13 +2,13 @@ import type { App, Config } from "../../types";
 import {some} from "../../utils.js";
 
 async function wasCaught (app: App.Core): Promise<boolean> {
-    const selector = '.found_pokemon_bg';
-    return await app.page.getElems(selector).then((elems) => elems.length !== 0);
+    const count = await app.extern.evaluateResult(() => window.many('.found_pokemon_bg').map((arr) => arr.length));
+    return count > 0;
 }
 
 async function throwPokeball (app: App.Core, pokeball: string): Promise<void> {
     const formName = `pokeball_${pokeball[0].toUpperCase() + pokeball.slice(1)}`;
-    await app.page.submitNavigate(formName);
+    await app.extern.submitAndNavigate(formName);
 }
 
 async function hasPokeball (app: App.Core, pokeball: string): Promise<boolean> {
@@ -16,12 +16,16 @@ async function hasPokeball (app: App.Core, pokeball: string): Promise<boolean> {
     const unblocked = `form[name="${formName}"]`;
     const blocked = `form[id="${formName}"]`;
 
-    return await Promise
-        .all([
-            app.page.getElems(unblocked),
-            app.page.getElems(blocked),
-        ])
-        .then(([balls, ballsB]) => balls.length > 0 || ballsB.length > 0);
+    const count = await app.extern.evaluateResult((unb, bl) => {
+        return window.many(unb)
+            .mapOrElse(
+                (elem) => elem,
+                () => window.many(bl),
+            )
+            .map((elems) => elems.length);
+    }, unblocked, blocked);
+
+    return count > 0;
 }
 
 // TODO: Add shiny + starter cases
