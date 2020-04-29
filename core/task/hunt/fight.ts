@@ -1,11 +1,11 @@
 import type { App } from "../../types";
 
-export async function selectLeaderToFight (app: App.Core): Promise<void> {
+export async function fightWithLeader (app: App.Core): Promise<void> {
     const formName = `poke_${app.state.leader.id}`;
 
     app.logger.debug({
         formName,
-        msg: 'selectLeaderToFight',
+        msg: 'fightWithLeader',
     });
 
     return await app.extern.submitAndNavigate(formName);

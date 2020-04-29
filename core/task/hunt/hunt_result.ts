@@ -1,9 +1,5 @@
-import type {App, State} from "../../types";
+import type {App} from "../../types";
 import {HUNT_RESULT} from "../../constants.js";
-
-export async function getPokeInfo (app: App.Core): Promise<State.EncounterPokemon> {
-    return await app.extern.getEncounterPokemonInfo();
-}
 
 async function isPokemonEncounter (app: App.Core): Promise<boolean> {
     return await app.extern.evaluateResult(() => window.many('.loc-poke').map((elems) => elems.length > 0));

@@ -7,6 +7,7 @@ import { SellPokemons } from "./sell_pokemons.js";
 import { EvolvePokemons } from "./evolve_pokemons.js";
 import { Hunt } from "./hunt.js";
 import {NoAP} from "./no_ap.js";
+import {Wait} from './wait.js';
 
 export function getTask (task: TASK): Task {
     switch (task) {
@@ -17,5 +18,6 @@ export function getTask (task: TASK): Task {
         case TASK.SELL_POKEMONS: return SellPokemons;
         case TASK.EVOLVE_POKEMONS: return EvolvePokemons;
         case TASK.HUNT: return Hunt;
+        case TASK.WAIT: return Wait;
     }
 }

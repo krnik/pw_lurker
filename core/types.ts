@@ -1,5 +1,5 @@
-import { TASK, POKEBALL } from "./constants";
-import {PWResult} from "../inject/error";
+import { TASK, POKEBALLS, HEAL_METHOD, AP_REFILL_METOHD, POKEBALL_CONDITION } from "./constants";
+import { PWResult } from "../inject/error";
 
 export type None = null | undefined;
 export type Some<T> = T;
@@ -23,13 +23,15 @@ export namespace Logger {
 // TODO: Add better pokeball handling
 // TODO: Add pokemon evo/selling settings
 export namespace Config {
-    export type HealMethod = ('juice' | 'money' | 'herb' | 'wait'); 
-    export type NoAPBehaviour = ('oak' | 'junipier' | 'wait');
-    export type PokeballCondition = ('starter' | 'shiny' | 'always' | 'name' | 'type');
-    export type PokeballThrowInfo = {
-        when: PokeballCondition,
-        eq?: string[];
-        name: POKEBALL,
+    export type HealMethod = typeof HEAL_METHOD[number];
+    export type APRefillMethod = typeof AP_REFILL_METOHD[number];
+    export type PokeballThrowCondition = {
+        type: typeof POKEBALL_CONDITION[number],
+        value?: number | string,
+    };
+    export type PokeballThrow = {
+        pokeball: typeof POKEBALLS.ALL[number];
+        when: PokeballThrowCondition[];
     };
 
     export type Core = {
@@ -38,8 +40,8 @@ export namespace Config {
         'bot.workWhileWaiting': boolean;
         'hunt.location': string;
         'hunt.locationAPCost': number;
-        'hunt.noAP': NoAPBehaviour;
-        'hunt.pokeballs': PokeballThrowInfo[];
+        'hunt.noAP': APRefillMethod[];
+        'hunt.pokeballs': PokeballThrow[];
         'leader.minHealth': number;
         'leader.healMethod': HealMethod[];
     };

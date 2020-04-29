@@ -22,15 +22,64 @@ export const enum TASK {
     HEAL = 'task-heal-leader',
     HUNT = 'task-hunt',
     NO_AP = 'task-no-ap',
+    WAIT = 'task-wait',
 };
 
-// TODO: Add all pokeballs
-export const enum POKEBALL {
-    NETBALL = 'netball',
-    LEVELBALL = 'levelball',
-    STARTERBALL = 'starterball',
-    WARSBALL = 'warsball',
-};
+// export type POKEBS = typeof POKEBALLS[number];
+export const POKEBALLS = {
+    ALL: [
+        'cherishball',
+        'diveball',
+        'fossilball',
+        'friendball',
+        'greatball',
+        'levelball',
+        'loveball',
+        'lureball',
+        'luxuryball',
+        'masterball',
+        'moonball',
+        'nestball',
+        'netball',
+        'pokeball',
+        'premierball',
+        'repeatball',
+        'shinyball',
+        'starterball',
+        'sunball',
+        'swarmball',
+        'timerball',
+        'ultraball',
+        'warsball',
+    ],
+    REPEATABLE: [
+        'repeatball',
+        'swarmball',
+        'timerball',
+    ],
+} as const;
+
+export const HEAL_METHOD = [
+    'money',
+    'juice',
+    'herb',
+    'wait',
+] as const;
+
+export const POKEBALL_CONDITION = [
+    'always',
+    'shiny',
+    'starter',
+    'chance',
+    'name',
+    'level',
+] as const;
+
+export const AP_REFILL_METOHD = [
+    'wait',
+    'junipier',
+    'oak',
+] as const;
 
 // TODO: Move to hunt task and replace with type union { type: 'item', item: 'mony' }
 export const enum HUNT_RESULT {

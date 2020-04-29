@@ -1,5 +1,6 @@
-import type { App, Config } from "../../types";
+import type { App, Config, State } from "../../types";
 import {some} from "../../utils.js";
+import {POKEBALLS} from "../../constants";
 
 async function wasCaught (app: App.Core): Promise<boolean> {
     const count = await app.extern.evaluateResult(() => window.many('.found_pokemon_bg').map((arr) => arr.length));
@@ -28,19 +29,6 @@ async function hasPokeball (app: App.Core, pokeball: string): Promise<boolean> {
     return count > 0;
 }
 
-// TODO: Add shiny + starter cases
-// TODO: Add level cases
-// TODO: Fix false "out of pokeballs" message
-// [1585418585332] DEBUG (23943 on al006): Page.getElems
-//     acc: "OmgNoCoJaRobie"
-//     selector: "form[method=post] input[name=pokeball][value=\"Netball\"]"
-// [1585418585335] WARN  (23943 on al006): Out of pokeballs
-//     acc: "OmgNoCoJaRobie"
-//     pokeball: {
-//       "name": "netball",
-//       "when": "always"
-//     }
-
 const STARTERS = [
     'bulbasaur',
     'charmander',
@@ -68,51 +56,49 @@ const STARTERS = [
     'sobble',
 ];
 
-function shouldThrow (pokeball: Config.PokeballThrowInfo, pokemon: { name: string, level: number, types: string[] }): boolean {
-    switch (pokeball.when) {
-        case 'always':
-            return true;
+function shouldThrow (pokeball: Config.PokeballThrow, pokemon: State.EncounterPokemon, pokeballs: State.Pokeball[]): boolean {
+    const current = pokeballs.find(({ name }) => name === pokeball.pokeball);
 
-        case 'starter':
-            return STARTERS.includes(pokemon.name);
-
-        case 'shiny':
-            return pokemon.name.startsWith('shiny');
-
-        case 'name':
-            return Array.isArray(pokeball.eq) && pokeball.eq.includes(pokeball.name);
-
-        case 'type':
-            return Array.isArray(pokeball.eq) && pokeball.eq.some((type) => pokemon.types.includes(type));
-
-        default:
-            return false;
+    if (!current) {
+        return false;
     }
+
+    return pokeball.when.some(({ type, value }): boolean => {
+        switch (type) {
+            case 'always':
+                return true;
+            case 'starter':
+                return STARTERS.includes(pokemon.name);
+            case 'shiny':
+                return pokemon.name.startsWith('shiny');
+            case 'name':
+                return pokemon.name === some(value);
+            case 'level':
+                return pokemon.level === some(value);
+            case 'chance':
+                return current.chance >= some(value);
+        }
+    });
 }
 
-export async function throwPokeballs (app: App.Core, info: { name: string, level: number, types: string[] }): Promise<void> {
-    const pokeballs = app.config['hunt.pokeballs'].slice();
+export async function throwPokeballs (app: App.Core, pokemon: State.EncounterPokemon, pokeballs: State.Pokeball[]): Promise<void> {
+    const balls = app.config['hunt.pokeballs'].slice();
 
-    while (pokeballs.length > 0) {
-        const pokeball = some(pokeballs.shift());
+    while (balls.length > 0) {
+        const pokeball = some(balls.shift());
 
         app.logger.info({
             pokeball,
-            pokemon: info,
+            pokemon,
             msg: 'Next Pokeball',
         });
 
-
-        if (!shouldThrow(pokeball, info)) {
-            app.logger.info({
-                pokeball,
-                pokemon: info,
-                msg: 'Skipping pokeball due to different requirements',
-            });
+        if (!shouldThrow(pokeball, pokemon, pokeballs)) {
+            app.logger.info({ msg: 'Skipping pokeball due to different requirements' });
             continue;
         }
 
-        if (!(await hasPokeball(app, pokeball.name))) {
+        if (!(await hasPokeball(app, pokeball.pokeball))) {
             app.logger.warn({
                 pokeball,
                 msg: 'Out of pokeballs',
@@ -120,8 +106,8 @@ export async function throwPokeballs (app: App.Core, info: { name: string, level
             continue;
         }
 
-        if (['netball'].includes(pokeball.name)) {
-            await throwPokeball(app, pokeball.name);
+        if (['netball'].includes(pokeball.pokeball)) {
+            await throwPokeball(app, pokeball.pokeball);
 
             if (await wasCaught(app)) {
                 return;
@@ -130,22 +116,22 @@ export async function throwPokeballs (app: App.Core, info: { name: string, level
             continue;
         }
 
-        if (['swarmball', 'repeatball'].includes(pokeball.name)) {
+        if (POKEBALLS.REPEATABLE.includes(pokeball.pokeball as any)) {
             let caught = false;
             let hasMore = true;
 
             while (hasMore && caught === false) {
-                await throwPokeball(app, pokeball.name);
+                await throwPokeball(app, pokeball.pokeball);
                 [caught, hasMore] = await Promise.all([
                     wasCaught(app),
-                    hasPokeball(app, pokeball.name),
+                    hasPokeball(app, pokeball.pokeball),
                 ]);
             }
 
             return;
         }
 
-        return await throwPokeball(app, pokeball.name);
+        return await throwPokeball(app, pokeball.pokeball);
     }
 }
 
