@@ -1,4 +1,4 @@
-import type { State, Config, Extern } from "../core/types";
+import type { State, Config, Extern, Logger } from "../core/types";
 import {ROUTE} from "../core/constants.js";
 import {is} from "../core/utils.js";
 import {BotExtern} from "./extern";
@@ -7,6 +7,7 @@ const leaderSelector = (id: number, active = false) => `.team_member.poke_view_b
 
 export class BotState implements State.Core {
     private extern: Extern.Core;
+    private logger: Logger.Core;
     public reserve: State.Reserve;
     public ap: State.AP;
     public location: State.Loc;
@@ -15,7 +16,7 @@ export class BotState implements State.Core {
     public team: State.Pokemon[];
     public money: number;
 
-    constructor (extern: Extern.Core, data: Omit<State.Core, 'refresh'>) {
+    constructor (extern: BotExtern, data: Omit<State.Core, 'refresh'>) {
         this.extern = extern;
         this.reserve = data.reserve;
         this.ap = data.ap;
@@ -24,6 +25,7 @@ export class BotState implements State.Core {
         this.leader = data.leader;
         this.location = data.location;
         this.locations = data.locations;
+        this.logger = extern.logger;
     }
 
     private async updateLeaderHealth (): Promise<void> {
@@ -47,6 +49,11 @@ export class BotState implements State.Core {
     }
 
     public async refresh (): Promise<void> {
+        this.logger.debug({ 
+            msg: 'Refreshing state',
+            function: 'BotState.refresh',
+        });
+
         const [money, reserve, ap] = await Promise.all([
             this.extern.getMoneyInfo(),
             this.extern.getPokemonCountInfo(),
@@ -57,6 +64,16 @@ export class BotState implements State.Core {
         this.money = money;
         this.reserve = reserve;
         this.ap = ap;
+
+        this.logger.debug({
+            function: 'BotState.refresh',
+            nextState: {
+                money: this.money,
+                reserve: this.reserve,
+                ap: this.ap,
+                leader: this.leader,
+            }
+        });
     }
 
     public static async create (extern: BotExtern, config: Config.Core): Promise<BotState> {

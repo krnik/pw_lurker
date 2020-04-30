@@ -361,7 +361,7 @@ export function getPokeballInfo (): PWResult<Info.Pokeball[]> {
 
     return PWResult.ok(forms.map((form) => {
         const name = form
-            .one('input[type=pokeball]')
+            .one('input[name=pokeball]')
             .map((input) => input.attr('value'))
             .map(toName)
             .unwrap();

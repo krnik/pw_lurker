@@ -1,4 +1,4 @@
-import { Task } from "../types";
+import { App } from "../types";
 import { TASK, ROUTE } from "../constants";
 
 const ACCEPT_WORK = '.work_box:last-of-type [name=przyjmij_oferte]';
@@ -10,11 +10,12 @@ function getWaitTime () {
     return time * 60 * 1000;
 }
 
-export const Wait: Task = {
+export const Wait: App.TaskImpls<TASK.WAIT> = {
     name: TASK.WAIT,
-    async perform (app, _params) {
+    async perform (app) {
         const work = app.config['bot.workWhileWaiting'];
         const ms = getWaitTime();
+
 
         app.logger.info({
             ms,

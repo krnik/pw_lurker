@@ -1,4 +1,4 @@
-import { TASK, POKEBALLS, HEAL_METHOD, AP_REFILL_METOHD, POKEBALL_CONDITION } from "./constants";
+import { TASK, POKEBALLS, HEAL_METHOD, AP_REFILL_METOHD, POKEBALL_CONDITION, CONDITION_KEYWORD, POKEMON_POKEBOX_CONDITION } from "./constants";
 import { PWResult } from "../inject/error";
 
 export type None = null | undefined;
@@ -20,19 +20,19 @@ export namespace Logger {
     }
 }
 
-// TODO: Add better pokeball handling
-// TODO: Add pokemon evo/selling settings
 export namespace Config {
+    export type ConditionKey = typeof CONDITION_KEYWORD[number];
+    export type Condition = Record<ConditionKey, any> & { type: string };
     export type HealMethod = typeof HEAL_METHOD[number];
     export type APRefillMethod = typeof AP_REFILL_METOHD[number];
-    export type PokeballThrowCondition = {
-        type: typeof POKEBALL_CONDITION[number],
-        value?: number | string,
-    };
+
     export type PokeballThrow = {
-        pokeball: typeof POKEBALLS.ALL[number];
-        when: PokeballThrowCondition[];
+        pokeballs: (typeof POKEBALLS.ALL[number])[];
+        when: (Condition & { type: typeof POKEBALL_CONDITION[number] })[];
+        best: 'chance' | 'quantity';
     };
+
+    export type PokeboxMove = (Condition & { type: typeof POKEMON_POKEBOX_CONDITION[number] });
 
     export type Core = {
         'user.password': string;
@@ -42,6 +42,7 @@ export namespace Config {
         'hunt.locationAPCost': number;
         'hunt.noAP': APRefillMethod[];
         'hunt.pokeballs': PokeballThrow[];
+        'hunt.pokemonPokeboxStore': PokeboxMove[];
         'leader.minHealth': number;
         'leader.healMethod': HealMethod[];
     };
@@ -100,30 +101,35 @@ export namespace State {
     };
 }
 
-// TODO: Use type union with 'name' discriminant.
-export interface Task {
-    name: TASK;
-
-    perform (app: App.Core, params?: Of<App.Task, 'params'>): Promise<void>;
-}
-
 export namespace App {
-    // TODO: As above
-    export type Task = {
-        name: TASK;
-        params: { [k: string]: Or<number, string> };
+    type TaskSignatures = {
+        [TASK.HEAL]: never;
+        [TASK.HUNT]: never;
+        [TASK.WAIT]: never;
+        [TASK.NO_AP]: never;
+        [TASK.BANK_DEPOSIT]: never;
+        [TASK.BANK_WITHDRAW]: { amount: number };
+        [TASK.SELL_POKEMONS]: never;
+        [TASK.EVOLVE_POKEMONS]: never;
     };
+    export type TaskImpls<T extends TASK> = {
+        name: T;
+        perform (app: App.Core, params: TaskSignatures[T]): Promise<void>;
+    };
+    export type TaskExecParameters<T extends TASK> = TaskSignatures[T] extends never ? [T] : [T, TaskSignatures[T]];
+    export type Tasks = { name: TASK, params?: TaskSignatures[TASK] }[];
 
     export interface Core {
         state: State.Core;
         logger: Logger.Core;
         extern: Extern.Core;
         config: Config.Core;
-        tasks: Task[];
+        tasks: Tasks;
 
         act (): Promise<void>;
         sleep (ms: number): Promise<void>;
-        execute (task: TASK, params: Of<Task, 'params'>): Promise<void>;
+        execute<T extends TASK> (...args: TaskExecParameters<T>): Promise<void>;
+        addTask<T extends TASK> (...args: TaskExecParameters<T>): void;
         nextTasks (): Promise<void>;
     }
 }

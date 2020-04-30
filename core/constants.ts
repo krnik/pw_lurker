@@ -1,7 +1,6 @@
 export const CACHE_DIR_NAME = '.cache';
 export const STATIC_DIR_NAME = 'static';
 export const CONFIG_FILE_NAME = 'config.json';
-export const CONFIG_SCHEMA_FILE_NAME = 'config.schema.json';
 
 export const enum ROUTE {
     TEAM = 'druzyna',
@@ -73,6 +72,23 @@ export const POKEBALL_CONDITION = [
     'chance',
     'name',
     'level',
+    'types',
+    'itemCount',
+] as const;
+
+export const POKEMON_POKEBOX_CONDITION = [
+    'shiny',
+    'name',
+    'level',
+] as const;
+
+export const CONDITION_KEYWORD = [
+    'eq',
+    'gt',
+    'lt',
+    'includes',
+    'in',
+    'startsWith',
 ] as const;
 
 export const AP_REFILL_METOHD = [

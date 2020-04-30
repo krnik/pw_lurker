@@ -1,4 +1,5 @@
-import { POKEBALLS, POKEBALL_CONDITION, AP_REFILL_METOHD, HEAL_METHOD } from "./constants";
+import { POKEBALLS, POKEBALL_CONDITION, AP_REFILL_METOHD, HEAL_METHOD, POKEMON_POKEBOX_CONDITION, CONDITION_KEYWORD } from "./constants";
+import {Config} from "./types";
 
 const CHUNK = {
     POKEBALL: {
@@ -30,26 +31,37 @@ const CHUNK = {
         maximum: 8,
         multipleOf: 1,
     },
+    POKEMON_POKEBOX_STORE_CONDITION: {
+        type: 'string',
+        enum: POKEMON_POKEBOX_CONDITION,
+    },
+    CONDITION_KEYWORD: {
+        type: 'string',
+        enum: CONDITION_KEYWORD,
+    },
     UINT: {
         type: 'number',
         minimum: 1,
         multipleOf: 1,
     },
+    NUMBER: {
+        type: 'number',
+    },
 };
 
-const pokeballThrowConditionSchema = {
+const conditionSchema = {
     type: 'object',
-    additionalProperties: false,
     required: ['type'],
-    properties: {
-        type: CHUNK.POKEBALL_CONDITION,
-        value: {
-            oneOf: [
-                CHUNK.STRING,
-                CHUNK.UINT,
-            ]
-        },
-    },
+    additionalProperties: false,
+    properties: ({
+        type: CHUNK.STRING,
+        lt: CHUNK.NUMBER,
+        gt: CHUNK.NUMBER,
+        eq: { oneOf: [CHUNK.NUMBER, CHUNK.STRING] },
+        includes: { oneOf: [CHUNK.NUMBER, CHUNK.STRING] },
+        startsWith: CHUNK.STRING,
+        in: { type: 'array', items: { oneOf: [CHUNK.NUMBER, CHUNK.STRING] } },
+    } as Record<Config.ConditionKey, object>),
 };
 
 const accountSchema = {
@@ -63,6 +75,7 @@ const accountSchema = {
         'hunt.location',
         'hunt.noAP',
         'hunt.pokeballs',
+        'hunt.pokemonPokeboxStore',
         'leader.minHealth',
         'leader.healMethod',
     ],
@@ -77,19 +90,31 @@ const accountSchema = {
             minLength: 1,
             items: CHUNK.AP_REFILL,
         },
+        'hunt.pokemonPokeboxStore': {
+            type: 'array',
+            items: conditionSchema,
+        },
         'hunt.pokeballs': {
             type: 'array',
             minLength: 1,
             items: {
                 type: 'object',
                 additionalProperties: false,
-                required: ['pokeball', 'when'],
+                required: ['pokeballs', 'when', 'best'],
                 properties: {
-                    pokeball: CHUNK.POKEBALL,
+                    pokeballs: {
+                        type: 'array',
+                        minLength: 1,
+                        items: CHUNK.POKEBALL,
+                    },
                     when: {
                         type: 'array',
                         minLength: 1,
-                        items: pokeballThrowConditionSchema,
+                        items: conditionSchema,
+                    },
+                    best: {
+                        type: 'string',
+                        enum: ['chance', 'quantity'],
                     },
                 },
             },
@@ -107,7 +132,13 @@ const accountSchema = {
 };
 
 export const configSchema = {
-    type: 'array',
-    minLength: 1,
-    items: accountSchema,
+    type: 'object',
+    required: ['accounts'],
+    properties: {
+        accounts: {
+            type: 'array',
+            minLength: 1,
+            items: accountSchema,
+        },
+    },
 };

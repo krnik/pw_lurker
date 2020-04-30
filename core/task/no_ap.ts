@@ -1,12 +1,12 @@
-import { Task } from "../types";
+import { App } from "../types";
 import { TASK, ROUTE } from "../constants";
 
 const OAK = 'form[method=post] input[type=submit][name=drink][id="tutorial-oak-button"]';
 const JUNIPIER = 'form[method=post] > input[value="664"] ~ input[type=submit]';
 
-export const NoAP: Task = {
+export const NoAP: App.TaskImpls<TASK.NO_AP> = {
     name: TASK.NO_AP,
-    async perform (app, _params) {
+    async perform (app) {
         loop: for (const refillMethod of app.config['hunt.noAP']) {
             switch (refillMethod) {
                 case 'oak': {
@@ -36,7 +36,7 @@ export const NoAP: Task = {
                     return await app.extern.clickAndNavigate(JUNIPIER);
                 }
                 case 'wait': {
-                    return await app.execute(TASK.WAIT, {});
+                    return await app.execute(TASK.WAIT);
                 }
             }
         }

@@ -1,9 +1,9 @@
-import type {Task} from "../types";
+import type {App} from "../types";
 import {TASK, ROUTE} from "../constants.js";
 
-export const SellPokemons: Task = {
+export const SellPokemons: App.TaskImpls<TASK.SELL_POKEMONS> = {
     name: TASK.SELL_POKEMONS,
-    async perform (app, _params) {
+    async perform (app) {
         await app.extern.ensurePathname(ROUTE.BREEDING);
         await app.extern.submitAndNavigate('sellAll');
     },

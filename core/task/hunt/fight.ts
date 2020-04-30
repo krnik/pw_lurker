@@ -23,3 +23,14 @@ export async function isLeaderVictorious (app: App.Core): Promise<boolean> {
         .one('.col .infoBar.error', null)
         .mapOrElse(() => false as boolean, () => true));
 }
+
+export async function tryTakeItems (app: App.Core): Promise<void> {
+    const selector = 'input[name="zdejmij_przedmioty"]';
+    const exists = await app.extern.evaluateResult(() => window
+        .one('input[name="zdejmij_przedmioty"]', null)
+        .mapOrElse(() => true, () => false))
+
+    if (exists) {
+        await app.extern.clickAndNavigate(selector);
+    }
+}

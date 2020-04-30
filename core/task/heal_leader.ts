@@ -1,4 +1,4 @@
-import type {Task, App, Config} from "../types";
+import type {App, Config} from "../types";
 import {TASK, ROUTE} from "../constants.js";
 import {unreachable} from "../utils.js";
 
@@ -83,9 +83,9 @@ function heal (method: Config.HealMethod): (app: App.Core, viewLeader: () => Pro
     }
 }
 
-export const HealLeader: Task = {
+export const HealLeader: App.TaskImpls<TASK.HEAL> = {
     name: TASK.HEAL,
-    async perform (app, _params) {
+    async perform (app) {
         const healMethods = app.config['leader.healMethod'];
         const leaderPath = `${ROUTE.POKE_STATE}/${app.state.leader.id}`;
         const viewLeader = async () => await app.extern.ensurePathname(leaderPath);
