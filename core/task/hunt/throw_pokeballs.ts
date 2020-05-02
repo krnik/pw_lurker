@@ -22,7 +22,7 @@ export async function throwPokeballs (app: App.Core, encounteredPokemon: State.E
         const availablePokeballs = await app.extern.getPokeballInfo();
         const setting = some(pokeballSettings.shift());
 
-        app.logger.info({
+        app.logger.debug({
             setting,
             encounteredPokemon,
             availablePokeballsCount: availablePokeballs.length,
@@ -30,15 +30,13 @@ export async function throwPokeballs (app: App.Core, encounteredPokemon: State.E
         });
 
         const pokeball = getPokeballToThrow(availablePokeballs, encounteredPokemon, setting);
-        app.logger.info({
-            pokeball,
-            msg: 'Using pokeball',
-        });
 
         if (pokeball === null) {
             app.logger.debug({ setting, msg: 'Skipping' });
             continue;
         }
+
+        app.logger.info({ pokeball, msg: 'Using pokeball' });
 
         if (pokeball.name === 'netball') {
             await throwPokeball(app, pokeball.name);
