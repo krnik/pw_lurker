@@ -1,6 +1,7 @@
-import type {App, State, Config} from "../types";
+import type {App, State} from "../types";
 import {TASK, ROUTE, EVENT} from "../constants.js";
 import {evaluateCondition} from "../condition";
+import {PokemonMoveCondition} from "../schema/condition";
 
 const ADV_EVO: Record<string, number> = {
     Kirlia: 282,
@@ -93,7 +94,7 @@ const IGNORED_EVO: string[] = [
     "heliolisk",
 ];
 
-function shouldMoveToPokebox (pokemon: State.ReservePokemon, setting: Config.PokeboxMove[]): boolean {
+function shouldMoveToPokebox (pokemon: State.ReservePokemon, setting: PokemonMoveCondition[]): boolean {
     return setting.some((condition) => {
         switch (condition.type) {
             case 'shiny':

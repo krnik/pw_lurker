@@ -1,8 +1,9 @@
-import {Config} from "./types";
+import {CONDITION_KEYWORD} from "./constants";
 
-type Condition = Partial<Omit<Config.Condition, 'type'>>;
+type ConditionKey = (typeof CONDITION_KEYWORD)[number];
+type Condition = Partial<Record<Exclude<ConditionKey, 'type'>, unknown>>;
 
-const COMPARISON: Record<Config.ConditionKey, (left: any, right: any) => boolean> = {
+const COMPARISON: Record<ConditionKey, (left: any, right: any) => boolean> = {
     startsWith (left: string, right: string): boolean {
         return left.startsWith(right);
     },
@@ -21,11 +22,14 @@ const COMPARISON: Record<Config.ConditionKey, (left: any, right: any) => boolean
     eq (left: any, right: any): boolean {
         return left === right;
     },
+    some (left: any[], right: any[]): boolean {
+        return left.some((elem) => right.includes(elem));
+    },
 };
 
 export function evaluateCondition (condition: Condition, left: any): boolean {
     return Object.keys(condition)
         .filter((key) => key in COMPARISON)
-        .every((key) => COMPARISON[key as Config.ConditionKey](left, condition[key as Config.ConditionKey]));
+        .every((key) => COMPARISON[key as ConditionKey](left, condition[key as ConditionKey]));
 }
 

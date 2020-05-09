@@ -1,5 +1,6 @@
-import { TASK, POKEBALLS, HEAL_METHOD, AP_REFILL_METOHD, POKEBALL_CONDITION, CONDITION_KEYWORD, POKEMON_POKEBOX_CONDITION, EVENT } from "./constants";
+import { TASK, POKEBALLS, HEAL_METHOD, AP_REFILL_METOHD, EVENT } from "./constants";
 import { PWResult } from "../inject/error";
+import {PokeballThrowCondition, PokemonMoveCondition} from "./schema/condition";
 
 export type None = null | undefined;
 export type Some<T> = T;
@@ -21,18 +22,14 @@ export namespace Logger {
 }
 
 export namespace Config {
-    export type ConditionKey = typeof CONDITION_KEYWORD[number];
-    export type Condition = Record<ConditionKey, any> & { type: string };
     export type HealMethod = typeof HEAL_METHOD[number];
     export type APRefillMethod = typeof AP_REFILL_METOHD[number];
 
     export type PokeballThrow = {
         pokeballs: (typeof POKEBALLS.ALL[number])[];
-        when: (Condition & { type: typeof POKEBALL_CONDITION[number] })[];
+        when: PokeballThrowCondition[];
         best: 'chance' | 'quantity';
     };
-
-    export type PokeboxMove = (Condition & { type: typeof POKEMON_POKEBOX_CONDITION[number] });
 
     export type Core = {
         'user.password': string;
@@ -42,7 +39,7 @@ export namespace Config {
         'hunt.locationAPCost': number;
         'hunt.noAP': APRefillMethod[];
         'hunt.pokeballs': PokeballThrow[];
-        'hunt.pokemonPokeboxStore': PokeboxMove[];
+        'hunt.pokemonPokeboxStore': PokemonMoveCondition[];
         'leader.minHealth': number;
         'leader.healMethod': HealMethod[];
     };

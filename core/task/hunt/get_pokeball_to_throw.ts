@@ -56,6 +56,8 @@ export function getPokeballToThrow (
                         return evaluateCondition(condition, level);
                     case 'itemCount':
                         return evaluateCondition(condition, items.length);
+                    case 'items':
+                        return evaluateCondition(condition, items);
                     case 'chance':
                         return evaluateCondition(condition, pokeball.chance);
                 }

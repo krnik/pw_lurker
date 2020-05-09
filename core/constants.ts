@@ -76,6 +76,7 @@ export const POKEBALL_CONDITION = [
     'level',
     'types',
     'itemCount',
+    'items',
 ] as const;
 
 export const POKEMON_POKEBOX_CONDITION = [
@@ -91,6 +92,7 @@ export const CONDITION_KEYWORD = [
     'includes',
     'in',
     'startsWith',
+    'some',
 ] as const;
 
 export const AP_REFILL_METOHD = [
