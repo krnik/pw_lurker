@@ -1,6 +1,6 @@
 import type { App, State } from "../../types";
 import {some} from "../../utils.js";
-import {POKEBALLS} from "../../constants";
+import {POKEBALLS, EVENT} from "../../constants";
 import {getPokeballToThrow} from "./get_pokeball_to_throw";
 
 async function wasCaught (app: App.Core): Promise<boolean> {
@@ -9,6 +9,7 @@ async function wasCaught (app: App.Core): Promise<boolean> {
 }
 
 async function throwPokeball (app: App.Core, pokeball: string): Promise<void> {
+    app.stats.add(EVENT.THROW_POKEBALL, pokeball);
     const formName = `pokeball_${pokeball[0].toUpperCase() + pokeball.slice(1)}`;
     await app.extern.submitAndNavigate(formName);
 }

@@ -1,4 +1,5 @@
 import type { App } from "../../types";
+import {EVENT} from "../../constants";
 
 export async function fightWithLeader (app: App.Core): Promise<void> {
     const formName = `poke_${app.state.leader.id}`;
@@ -24,7 +25,17 @@ export async function isLeaderVictorious (app: App.Core): Promise<boolean> {
         .mapOrElse(() => false as boolean, () => true));
 }
 
-export async function tryTakeItems (app: App.Core): Promise<void> {
+export async function tryTakeItems (app: App.Core, pokemon: string): Promise<void> {
+    const caught = await app.extern.evaluateResult(() => window
+        .one('.found_pokemon_bg', null)
+        .mapOrElse(() => true, () => false));
+
+    if (!caught) {
+        return;
+    }
+
+    app.stats.add(EVENT.THROW_SUCCESSFUL, pokemon);
+
     const selector = 'input[name="zdejmij_przedmioty"]';
     const exists = await app.extern.evaluateResult(() => window
         .one('input[name="zdejmij_przedmioty"]', null)

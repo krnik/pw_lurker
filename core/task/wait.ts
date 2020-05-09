@@ -1,5 +1,5 @@
 import { App } from "../types";
-import { TASK, ROUTE } from "../constants";
+import { TASK, ROUTE, EVENT } from "../constants";
 
 const ACCEPT_WORK = '.work_box:last-of-type [name=przyjmij_oferte]';
 const FINISH_WORK = '#aktywna_praca [name=zakoncz_prace]';
@@ -16,12 +16,13 @@ export const Wait: App.TaskImpls<TASK.WAIT> = {
         const work = app.config['bot.workWhileWaiting'];
         const ms = getWaitTime();
 
-
         app.logger.info({
             ms,
             ends: new Date(Date.now() + ms).toUTCString(),
             msg: 'Waiting',
         });
+
+        app.stats.add(EVENT.WAIT);
 
         if (work) {
             await app.extern.ensurePathname(ROUTE.WORK);

@@ -1,9 +1,13 @@
 import type {App, State, Config} from "../types";
-import {TASK, ROUTE} from "../constants.js";
+import {TASK, ROUTE, EVENT} from "../constants.js";
 import {evaluateCondition} from "../condition";
 
 const ADV_EVO: Record<string, number> = {
     Kirlia: 282,
+    Wurmple: 0,
+    Snorunt: 0,
+    Burmy: 0,
+    Cosmoem: 0,
     Slowpoke: 80,
 };
 
@@ -107,6 +111,7 @@ export const EvolvePokemons: App.TaskImpls<TASK.EVOLVE_POKEMONS> = {
     async perform (app) {
         await app.extern.ensurePathname(ROUTE.TEAM);
 
+        let evolved = 0;
         
         for (let i = 0; i < 3; i++) {
             for (const pokemon of await app.extern.getReservePokemons()) {
@@ -135,11 +140,15 @@ export const EvolvePokemons: App.TaskImpls<TASK.EVOLVE_POKEMONS> = {
                     await (nextForm === undefined
                         ? app.extern.evolve(pokemon.id)
                         : app.extern.evolveAdvanced(pokemon.id, nextForm));
+
+                    evolved += 1;
                     continue;
                 }
 
                 await app.sleep(Math.floor(Math.random() * 300));
             }
         }
+
+        app.stats.add(EVENT.EVOLVE_POKEMONS, evolved);
     },
 };

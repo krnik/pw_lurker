@@ -38,7 +38,7 @@ async function isTrader (app: App.Core): Promise<boolean> {
         .map((elems) => elems.length > 0));
 }
 
-async function getFoundItem (app: App.Core): Promise<string> {
+export async function getFoundItem (app: App.Core): Promise<string> {
     return await app.extern.evaluateResult(() => window
         .one('.found_item_bg img', null)
         .map((elem) => elem.attr('src'))
@@ -82,10 +82,6 @@ export async function getHuntResult (app: App.Core): Promise<HUNT_RESULT> {
     }
 
     if (item) {
-        app.logger.info({
-            item: await getFoundItem(app),
-            msg: 'Found item',
-        });
         return HUNT_RESULT.ITEM;
     }
 

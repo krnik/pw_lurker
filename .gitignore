@@ -1,6 +1,8 @@
 /dist/
 /node_modules/
-.ts_build
 /.cache
 config.json
 /snaps
+/journal
+/stats
+/log

@@ -1,6 +1,8 @@
 export const CACHE_DIR_NAME = '.cache';
 export const STATIC_DIR_NAME = 'static';
 export const CONFIG_FILE_NAME = 'config.json';
+export const JOURNAL_DIR_NAME = 'journal';
+export const STATS_DIR_NAME = 'stats';
 
 export const enum ROUTE {
     TEAM = 'druzyna',
@@ -108,3 +110,17 @@ export const enum HUNT_RESULT {
     NOTHING = 'hunt-result-nothing',
 };
 
+export const enum EVENT {
+    SELL_POKEMONS = 'event-sell-pokemons',
+    WAIT = 'event-wait',
+    DEPOSIT = 'event-deposit',
+    WITHDRAW = 'event-withdraw',
+    EVOLVE_POKEMONS = 'event-evolve-pokemons',
+    HEAL = 'event-heal',
+    HUNT = 'event-hunt',
+    ENCOUNTER_POKEMON = 'event-encounter-pokemon',
+    ENCOUNTER_ITEM = 'event-encounter-item',
+    ENCOUNTER_NOTHING = 'event-encounter-nothing',
+    THROW_POKEBALL = 'event-throw-pokeball',
+    THROW_SUCCESSFUL = 'event-throw-successfull',
+};

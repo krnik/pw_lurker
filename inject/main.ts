@@ -92,7 +92,7 @@ export function getLeaderHP (): PWResult<Info.HP> {
 }
 
 export function toMoneyAmount (balance: string): PWResult<number> {
-    const amount = /^\d+/.exec(balance.replace('.', '').trim());
+    const amount = /[.\d]+/.exec(balance.replace(/\./g, '').trim());
 
     return PWResult
         .errIfNull(

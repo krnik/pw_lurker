@@ -1,4 +1,4 @@
-import { TASK, POKEBALLS, HEAL_METHOD, AP_REFILL_METOHD, POKEBALL_CONDITION, CONDITION_KEYWORD, POKEMON_POKEBOX_CONDITION } from "./constants";
+import { TASK, POKEBALLS, HEAL_METHOD, AP_REFILL_METOHD, POKEBALL_CONDITION, CONDITION_KEYWORD, POKEMON_POKEBOX_CONDITION, EVENT } from "./constants";
 import { PWResult } from "../inject/error";
 
 export type None = null | undefined;
@@ -101,6 +101,43 @@ export namespace State {
     };
 }
 
+export namespace Stats {
+    type Earnings = {
+        total: number;
+        prices: number[];
+    };
+
+    export type State = {
+        hunts: number;
+        hunts_failed: number;
+        earnings: Earnings;
+        pokemons: Record<string, number>;
+        pokemons_caught: number;
+        pokeballs: Record<string, number>;
+        total_pokeballs: number;
+        items: Record<string, number>;
+    }
+
+    export type Params = {
+        [EVENT.SELL_POKEMONS]: [number];
+        [EVENT.WAIT]: [];
+        [EVENT.DEPOSIT]: [number];
+        [EVENT.WITHDRAW]: [number];
+        [EVENT.EVOLVE_POKEMONS]: [number];
+        [EVENT.HEAL]: [];
+        [EVENT.HUNT]: [string];
+        [EVENT.ENCOUNTER_POKEMON]: [string];
+        [EVENT.ENCOUNTER_ITEM]: [string];
+        [EVENT.ENCOUNTER_NOTHING]: [];
+        [EVENT.THROW_POKEBALL]: [string];
+        [EVENT.THROW_SUCCESSFUL]: [string];
+    };
+
+    export interface Core {
+        add<E extends EVENT> (event: E, ...args: Params[E]): void;
+    }
+}
+
 export namespace App {
     type TaskSignatures = {
         [TASK.HEAL]: never;
@@ -125,6 +162,7 @@ export namespace App {
         extern: Extern.Core;
         config: Config.Core;
         tasks: Tasks;
+        stats: Stats.Core;
 
         act (): Promise<void>;
         sleep (ms: number): Promise<void>;

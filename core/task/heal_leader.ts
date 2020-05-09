@@ -1,5 +1,5 @@
 import type {App, Config} from "../types";
-import {TASK, ROUTE} from "../constants.js";
+import {TASK, ROUTE, EVENT} from "../constants.js";
 import {unreachable} from "../utils.js";
 
 async function healWithJuice (app: App.Core, viewLeader: () => Promise<void>): Promise<boolean> {
@@ -102,6 +102,7 @@ export const HealLeader: App.TaskImpls<TASK.HEAL> = {
 
         await app.extern.ensurePathname(ROUTE.START);
         await app.extern.reload();
+        app.stats.add(EVENT.HEAL);
     },
 };
 

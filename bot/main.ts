@@ -1,12 +1,13 @@
 import puppeteer, {Browser} from 'puppeteer';
-import type {App, Config, Logger, Extern } from "../core/types";
+import type {App, Config, Logger, Extern, Stats } from "../core/types";
 import {getBotPage} from "./page.js";
 import {BotExtern} from "./extern.js";
 import {getTask} from "../core/task/task.mod.js";
-import {TASK, /* ROUTE */} from "../core/constants.js";
+import {TASK} from "../core/constants.js";
 import {BotState} from "./state.js";
 import {some} from '../core/utils.js';
 import {configuration} from './configuration.js';
+import {BotStats} from './stats';
 
 export class Bot implements App.Core {
     public state: BotState;
@@ -14,12 +15,14 @@ export class Bot implements App.Core {
     public logger: Logger.Core;
     public config: Config.Core;
     public tasks: App.Tasks;
+    public stats: Stats.Core;
 
     private constructor (logger: Logger.Core, extern: BotExtern, state: BotState, config: Config.Core) {
         this.state = state;
         this.logger = logger;
         this.config = config;
         this.extern = extern;
+        this.stats = new BotStats(config);
         this.tasks = [];
     }
 
