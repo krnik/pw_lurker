@@ -125,4 +125,5 @@ export const enum EVENT {
     ENCOUNTER_NOTHING = 'event-encounter-nothing',
     THROW_POKEBALL = 'event-throw-pokeball',
     THROW_SUCCESSFUL = 'event-throw-successfull',
+    THROW_FAILED = 'event-throw-failed',
 };

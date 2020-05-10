@@ -1,4 +1,4 @@
-import { Stats, Config, Option } from "../core/types";
+import { Stats, Config } from "../core/types";
 import { resolveRoot } from "../core/paths";
 import { STATS_DIR_NAME, EVENT, JOURNAL_DIR_NAME } from "../core/constants";
 import { existsSync, writeFileSync, readFileSync, appendFileSync } from "fs";
@@ -9,19 +9,15 @@ function zeroPad (num: number, len: number): string {
 
 export class BotStats implements Stats.Core {
     private state: Stats.State;
-    private timeout: Option<NodeJS.Timeout>;
     private statsPath: string;
     private messages: string[];
-    private journalDirPath: string;
+    private location: string;
+    private login: string;
 
     constructor (config: Config.Core) {
         this.messages = [];
-        this.timeout = null;
-
-        this.journalDirPath = resolveRoot([
-            JOURNAL_DIR_NAME,
-            config['user.login'],
-        ]);
+        this.location = config['hunt.location'];
+        this.login = config['user.login'].toLowerCase();
 
         const filePath = resolveRoot([
             STATS_DIR_NAME,
@@ -49,6 +45,8 @@ export class BotStats implements Stats.Core {
         } else {
             this.state = JSON.parse(readFileSync(filePath).toString());
         }
+
+        setInterval(() => this.flush(), 60000);
     }
 
     add<E extends EVENT>(event: E, ...params: Stats.Params[E]): void {
@@ -57,33 +55,33 @@ export class BotStats implements Stats.Core {
                 const [price] = (params as Stats.Params[EVENT.SELL_POKEMONS]);
                 this.state.earnings.prices.push(price);
                 this.state.earnings.total += price;
-                this.addMessage(`Selling pokemons for ${price}.`);
+                this.addMessage(`Selling pokemons for ${price}`);
                 break;
 
             case EVENT.WAIT:
-                this.addMessage('Waiting.');
+                this.addMessage('Waiting');
                 break;
         
             case EVENT.DEPOSIT:
-                this.addMessage(`Deposit ${params[0]}.`);
+                this.addMessage(`Deposit ${params[0]}`);
                 break;
 
             case EVENT.WITHDRAW:
-                this.addMessage(`Withdraw ${params[0]}.`);
+                this.addMessage(`Withdraw ${params[0]}`);
                 break;
             
             case EVENT.EVOLVE_POKEMONS:
                 const [count] = (params as Stats.Params[EVENT.EVOLVE_POKEMONS]);
-                this.addMessage(`Evolved pokemons ${count} times.`);
+                this.addMessage(`Evolved pokemons ${count} times`);
                 break;
 
             case EVENT.HEAL:
-                this.addMessage('Healed leader.');
+                this.addMessage('Healed leader');
                 break;
 
             case EVENT.HUNT:
                 this.state.hunts += 1;
-                this.addMessage(`Hunt in ${params[0]}.`);
+                this.addMessage('Hunt');
                 break;
 
             case EVENT.ENCOUNTER_POKEMON:
@@ -95,7 +93,7 @@ export class BotStats implements Stats.Core {
                     this.state.pokemons[pokemon] = 1;
                 }
 
-                this.addMessage(`Encountered pokemon ${pokemon}!`);
+                this.addMessage(`Encountered pokemon ${pokemon}`);
                 break;
 
             case EVENT.ENCOUNTER_ITEM:
@@ -110,7 +108,7 @@ export class BotStats implements Stats.Core {
 
             case EVENT.ENCOUNTER_NOTHING:
                 this.state.hunts_failed += 1;
-                this.addMessage('No encounter.');
+                this.addMessage('No encounter');
                 break;
 
             case EVENT.THROW_POKEBALL:
@@ -123,41 +121,36 @@ export class BotStats implements Stats.Core {
                     this.state.pokeballs[pokeball] = 1;
                 }
 
-                this.addMessage(`Throwing ${pokeball}.`);
+                this.append(pokeball);
                 break;
 
             case EVENT.THROW_SUCCESSFUL:
                 this.state.pokemons_caught += 1;
-                this.addMessage(`Caught ${params[0]}.`);
+                this.append('caught');
+                break;
+            
+            case EVENT.THROW_FAILED:
+                this.append('escaped');
                 break;
         }
-
-        this.scheduleWrite();
     }
 
     private addMessage (message: string): void {
         const now = new Date();
-        const timestamp = `[${zeroPad(now.getHours(), 2)}:${zeroPad(now.getMinutes(), 2)}]`;
-        this.messages.push(`${timestamp} ${message}`);
+        const timestamp = `${zeroPad(now.getHours(), 2)}:${zeroPad(now.getMinutes(), 2)}`;
+        this.messages.push(`\n[${timestamp} @ ${this.location}] ${message}`);
     }
 
-    private scheduleWrite(): void {
-        if (this.timeout) {
-            clearTimeout(this.timeout);
-        }
-
-        if (this.messages.length > 100) {
-            this.flush();
-        }
-
-        this.timeout = setTimeout(() => this.flush(), 5000);
+    private append (message: string): void {
+        const len = this.messages.length;
+        this.messages[len - 1] += ` -> ${message}`;
     }
 
     private flush () {
         writeFileSync(this.statsPath, JSON.stringify(this.state, undefined, 2));
 
         if (this.messages.length > 0) {
-            appendFileSync(this.getJournalFilePath(), this.messages.join('\n') + '\n');
+            appendFileSync(this.getJournalFilePath(), this.messages.join(''));
         }
 
         this.messages = [];
@@ -165,9 +158,9 @@ export class BotStats implements Stats.Core {
 
     private getJournalFilePath() {
         const now = new Date();
-        const fname = `${now.getFullYear()}_${zeroPad(now.getMonth() + 1, 2)}_${zeroPad(now.getDate(), 2)}.log`;
+        const fname = `${this.login}_${now.getFullYear()}_${zeroPad(now.getMonth() + 1, 2)}_${zeroPad(now.getDate(), 2)}.log`;
         const path = resolveRoot([
-            this.journalDirPath,
+            JOURNAL_DIR_NAME,
             fname,
         ]);
 

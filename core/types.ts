@@ -122,12 +122,13 @@ export namespace Stats {
         [EVENT.WITHDRAW]: [number];
         [EVENT.EVOLVE_POKEMONS]: [number];
         [EVENT.HEAL]: [];
-        [EVENT.HUNT]: [string];
+        [EVENT.HUNT]: [];
         [EVENT.ENCOUNTER_POKEMON]: [string];
         [EVENT.ENCOUNTER_ITEM]: [string];
         [EVENT.ENCOUNTER_NOTHING]: [];
         [EVENT.THROW_POKEBALL]: [string];
-        [EVENT.THROW_SUCCESSFUL]: [string];
+        [EVENT.THROW_SUCCESSFUL]: [];
+        [EVENT.THROW_FAILED]: [];
     };
 
     export interface Core {

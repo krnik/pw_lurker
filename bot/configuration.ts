@@ -36,8 +36,3 @@ if (!validator(configData)) {
 
 export const configuration: BotJsonConfig = configData;
 
-for (const acc of configuration.accounts) {
-    ensureDirExists([JOURNAL_DIR_NAME, acc['user.login']]);
-    ensureDirExists([STATS_DIR_NAME, acc['user.login']]);
-}
-

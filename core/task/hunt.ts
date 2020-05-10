@@ -9,7 +9,7 @@ const locactionSelector = (title: string) => `.location a[title="${title}"]`;
 export const Hunt: App.TaskImpls<TASK.HUNT> = {
     name: TASK.HUNT,
     async perform (app) {
-        app.stats.add(EVENT.HUNT, app.state.location.name);
+        app.stats.add(EVENT.HUNT);
         await app.extern.clickAndNavigate(locactionSelector(app.state.location.original));
 
         const huntResult = await getHuntResult(app);
@@ -31,7 +31,7 @@ export const Hunt: App.TaskImpls<TASK.HUNT> = {
                 }
 
                 await throwPokeballs(app, pokemon);
-                await tryTakeItems(app, pokemon.name);
+                await tryTakeItems(app);
                 break;
 
             case HUNT_RESULT.TEAM_FIGHT:

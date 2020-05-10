@@ -25,16 +25,17 @@ export async function isLeaderVictorious (app: App.Core): Promise<boolean> {
         .mapOrElse(() => false as boolean, () => true));
 }
 
-export async function tryTakeItems (app: App.Core, pokemon: string): Promise<void> {
+export async function tryTakeItems (app: App.Core): Promise<void> {
     const caught = await app.extern.evaluateResult(() => window
         .one('.found_pokemon_bg', null)
         .mapOrElse(() => true, () => false));
 
     if (!caught) {
+        app.stats.add(EVENT.THROW_FAILED);
         return;
     }
 
-    app.stats.add(EVENT.THROW_SUCCESSFUL, pokemon);
+    app.stats.add(EVENT.THROW_SUCCESSFUL);
 
     const selector = 'input[name="zdejmij_przedmioty"]';
     const exists = await app.extern.evaluateResult(() => window
