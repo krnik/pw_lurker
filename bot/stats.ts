@@ -21,7 +21,7 @@ export class BotStats implements Stats.Core {
 
         const filePath = resolveRoot([
             STATS_DIR_NAME,
-            config['user.login'],
+            this.login,
             config['hunt.location'],
         ]);
 
