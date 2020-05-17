@@ -318,6 +318,8 @@ export function moveToPokebox (id: number): Promise<PWResult<boolean>> {
         id,
         to: 'pokebox',
         from: 'rezerwa',
+        func: 'move_to',
+        method: 'team_poke',
     };
 
     return new Promise((resolve) => $.ajax({

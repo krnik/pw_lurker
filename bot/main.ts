@@ -65,7 +65,7 @@ export class Bot implements App.Core {
     }
 
     public async sleep (ms: number): Promise<void> {
-        this.logger.info({
+        this.logger.trace({
             msg: 'Sleeping',
             duration: ms,
         });

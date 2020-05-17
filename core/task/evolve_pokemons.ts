@@ -113,14 +113,22 @@ export const EvolvePokemons: App.TaskImpls<TASK.EVOLVE_POKEMONS> = {
         await app.extern.ensurePathname(ROUTE.TEAM);
 
         let evolved = 0;
+        let moved = false;
+
+        for (const pokemon of await app.extern.getReservePokemons()) {
+            if (shouldMoveToPokebox(pokemon, app.config['hunt.pokemonPokeboxStore'])) {
+                moved = true;
+                await app.extern.moveToPokebox(pokemon.id);
+                await app.sleep(Math.floor(Math.random() * 2000));
+            }
+        }
+
+        if (moved) {
+            await app.extern.reload();
+        }
         
         for (let i = 0; i < 3; i++) {
             for (const pokemon of await app.extern.getReservePokemons()) {
-                if (shouldMoveToPokebox(pokemon, app.config['hunt.pokemonPokeboxStore'])) {
-                    await app.extern.moveToPokebox(pokemon.id);
-                    continue;
-                }
-
                 const species = pokemon.name.replace('shiny-', '');
 
                 if (IGNORED_EVO.includes(species)) {
