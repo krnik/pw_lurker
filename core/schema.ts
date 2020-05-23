@@ -1,6 +1,7 @@
 import {BuildSchema, CommonSchema} from "./schema/common";
-import {MoveConditionSchema, ThrowConditionSchema} from "./schema/condition";
+import {MoveConditionSchema, ThrowConditionSchema, APRefillConditionSchema} from "./schema/condition";
 import {SchemaEnum} from "./schema/enums";
+import { AP_REFILL_METOHD } from "./constants";
 
 const accountSchema = {
     type: 'object',
@@ -27,7 +28,13 @@ const accountSchema = {
             maximum: 8,
         },
         'hunt.location': CommonSchema.str,
-        'hunt.noAP': BuildSchema.array({ minLength: 1 }, SchemaEnum.apRefillMethod),
+        'hunt.noAP': BuildSchema.array(
+            { minLength: 1 }, 
+            BuildSchema.oneOf(
+                { type: 'string', const: AP_REFILL_METOHD[0] },
+                BuildSchema.oneOf(APRefillConditionSchema.always, APRefillConditionSchema.count)
+            ),
+        ),
         'hunt.pokemonPokeboxStore': {
             type: 'array',
             items: BuildSchema.oneOf(

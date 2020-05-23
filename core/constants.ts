@@ -97,7 +97,7 @@ export const CONDITION_KEYWORD = [
 
 export const AP_REFILL_METOHD = [
     'wait',
-    'junipier',
+    'juniper',
     'oak',
 ] as const;
 

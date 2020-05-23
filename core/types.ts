@@ -1,6 +1,6 @@
 import { TASK, POKEBALLS, HEAL_METHOD, AP_REFILL_METOHD, EVENT } from "./constants";
 import { PWResult } from "../inject/error";
-import {PokeballThrowCondition, PokemonMoveCondition} from "./schema/condition";
+import {PokeballThrowCondition, PokemonMoveCondition, APRefillCondition} from "./schema/condition";
 
 export type None = null | undefined;
 export type Some<T> = T;
@@ -23,13 +23,14 @@ export namespace Logger {
 
 export namespace Config {
     export type HealMethod = typeof HEAL_METHOD[number];
-    export type APRefillMethod = typeof AP_REFILL_METOHD[number];
+    export type APRefillMethod = typeof AP_REFILL_METOHD[0] | APRefillCondition;
 
     export type PokeballThrow = {
         pokeballs: (typeof POKEBALLS.ALL[number])[];
         when: PokeballThrowCondition[];
         best: 'chance' | 'quantity';
     };
+    
 
     export type Core = {
         'user.password': string;

@@ -1,4 +1,5 @@
 import {CommonSchema, BuildSchema} from "./common";
+import { AP_REFILL_METOHD } from "../constants";
 
 function buildType (type: string): object {
     return { ...CommonSchema.str, enum: [type] };
@@ -15,6 +16,24 @@ function buildCondition (properties: object): object {
         additionalProperties: false,
     };
 }
+
+export const APRefillConditionSchema = {
+    always: buildCondition({
+        target: {
+            type: 'string',
+            enum: [AP_REFILL_METOHD[1], AP_REFILL_METOHD[2]],
+        },
+        type: buildType('always')
+    }),
+    count: buildCondition({
+        target: {
+            type: 'string',
+            enum: [AP_REFILL_METOHD[1], AP_REFILL_METOHD[2]],
+        },
+        type: buildType('count'),
+        gt: CommonSchema.uint,
+    }),
+};
 
 export const ThrowConditionSchema = {
     always: buildCondition({ type: buildType('always') }),
@@ -121,3 +140,16 @@ export const MoveConditionSchema = {
     name: ThrowConditionSchema.name,
     level: ThrowConditionSchema.level,
 };
+
+type APAlways = {
+    type: 'always',
+    target: (typeof AP_REFILL_METOHD[1] | typeof AP_REFILL_METOHD[2])
+};
+
+type APCount = {
+    type: 'count',
+    target: (typeof AP_REFILL_METOHD[1] | typeof AP_REFILL_METOHD[2])
+    gt: number,
+};
+
+export type APRefillCondition = APAlways | APCount;
