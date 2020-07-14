@@ -22,6 +22,10 @@ async function getItemCount (app: App.Core, itemName: string): Promise<number> {
 export const NoAP: App.TaskImpls<TASK.NO_AP> = {
     name: TASK.NO_AP,
     async perform (app) {
+        if (app.config.oaksLeft === undefined) {
+            app.config.oaksLeft = 0;
+        }
+        
         try {
         await app.extern.ensurePathname(ROUTE.INVENTORY);
         const refillMethods = app.config['hunt.noAP'];
@@ -41,6 +45,15 @@ export const NoAP: App.TaskImpls<TASK.NO_AP> = {
                     ? true
                     : evaluateCondition({ gt: method.gt }, oakCount);
                 if (canDrink) {
+                if (method.type === 'always') {
+                    return await app.extern.clickAndNavigate(OAK);
+                }
+
+                const left = app.config.oaksLeft;
+
+
+                if (left > 0) {
+                    app.config.oaksLeft -= 1;
                     return await app.extern.clickAndNavigate(OAK);
                 }
             } else {

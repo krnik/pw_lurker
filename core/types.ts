@@ -43,6 +43,7 @@ export namespace Config {
         'hunt.pokemonPokeboxStore': PokemonMoveCondition[];
         'leader.minHealth': number;
         'leader.healMethod': HealMethod[];
+        oaksLeft: number;
     };
 }
 
