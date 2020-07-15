@@ -26,7 +26,6 @@ export const NoAP: App.TaskImpls<TASK.NO_AP> = {
             app.config.oaksLeft = 0;
         }
         
-        try {
         await app.extern.ensurePathname(ROUTE.INVENTORY);
         const refillMethods = app.config['hunt.noAP'];
 
@@ -65,11 +64,8 @@ export const NoAP: App.TaskImpls<TASK.NO_AP> = {
                 }
             }
         }
+        }
 
         return app.execute(TASK.WAIT);
-        } catch (err) {
-            console.log(err);
-            await app.sleep(1000000);
-        }
     },
 };
