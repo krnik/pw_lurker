@@ -1,9 +1,15 @@
 import type { Config } from '../core/types';
-import {Browser, Page } from 'puppeteer';
+import {Browser, Page, Request } from 'puppeteer';
 import {props} from '../core/utils.js';
 import {Cache} from './cache.js';
 import { logger } from './utils/logger.js';
 
+const RequestAbortPredicates: ((r: Request) => boolean)[] = [
+    (r) => r.url().includes('chat.js'),
+    (r) => r.url().includes('facebook.com'),
+    (r) => r.url().includes('facebook.net'),
+    (r) => r.url().includes('googletagmanager.com'),
+];
 
 export interface BotPage extends Page {
     logger: typeof logger,
@@ -19,7 +25,7 @@ export async function getBotPage (browser: Browser, config: Config.Core): Promis
     page.on('request', async (request) => {
         const url = request.url();
 
-        if (url.includes('chat.js')) {
+        if (RequestAbortPredicates.some((fn) => fn(request))) {
             return await request.abort('blockedbyclient');
         }
 

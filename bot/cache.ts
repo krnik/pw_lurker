@@ -1,110 +1,74 @@
-import { resolve } from 'path';
-import {readdirSync, readFile, writeFile, readFileSync} from 'fs';
+import {readdirSync, readFile, writeFile, readFileSync, existsSync, mkdirSync} from 'fs';
 import type {Response} from 'puppeteer';
-import { some } from '../core/utils.js';
 import { CACHE_DIR_NAME, STATIC_DIR_NAME } from '../core/constants.js';
 import {resolveRoot} from '../core/paths.js';
+import {createHash} from 'crypto';
 
 class CacheBase {
-    static REGEX: RegExp = /^https?:\/\/(gra\.)?pokewars.pl\/(?<route>.+)(\?[\w\W]*)?$/i;
-    static MIMES: RegExp[] = [/^image\/\w+$/];
-    static CACHE_PATH = resolveRoot([CACHE_DIR_NAME]);
-    static STATIC_PATH = resolveRoot([STATIC_DIR_NAME]);
-    static ignored: Set<string> = new Set();
-    static ignoredList: string[] = [];
-
-    static ignore (url: string) {
-        this.ignored.add(url);
-        this.ignoredList.push(url);
-
-        if (this.ignoredList.length > 400) {
-            setTimeout(() => {
-                while (this.ignoredList.length > 400) {
-                    const entry = this.ignoredList.shift();
-
-                    if (entry !== undefined) {
-                        this.ignored.delete(entry);
-                    }
-                }
-            }, 1);
-        }
-    }
-
-    static shouldCache (res: Response): boolean {
-        const url = res.url();
-        if (this.ignored.has(url)) {
-            return false;
-        }
-
-        const contentType = res.headers()['content-type'];
-        const shouldCache = this.urlValid(url)
-            && this.MIMES.some((mime) => mime.test(contentType));
-
-        if (!shouldCache) {
-            this.ignore(url);
-        }
-
-        return shouldCache;
-    }
-
-    static urlValid (url: string): boolean {
-        return this.REGEX.test(url);
-    }
-
-    static fileName (url: string): string {
-        const name = some(some(this.REGEX.exec(url)).groups).route;
-        return encodeURIComponent(name);
-    }
+    static chacheResponsePredicates: ((r: Response) => boolean)[] = [
+        (r) => r.url().includes('pokewars.pl/img'),
+        (r) => r.url().includes('pokewars.pl/fonts'),
+        (r) => r.url().includes('pokewars.pl/css'),
+        (r) => r.url().includes('pokewars.pl/js/libs'),
+        (r) => r.url().includes('jsdelivr.net'),
+        (r) => r.url().includes('googleapis.com'),
+    ];
 
     items: Set<string>;
     staticItems: Map<string, Buffer>;
 
     constructor () {
-        this.items = new Set(readdirSync(CacheBase.CACHE_PATH));
+        if (!existsSync(CACHE_DIR_NAME)) {
+            mkdirSync(CACHE_DIR_NAME);
+        }
+
+        this.items = new Set(readdirSync(resolveRoot([CACHE_DIR_NAME])));
+
         this.staticItems = new Map();
 
-        const original = readFileSync(resolve(
-            CacheBase.STATIC_PATH, 'general.js'
-        ));
+        const original = readFileSync(resolveRoot([STATIC_DIR_NAME, 'general.js']));
         const inject = readFileSync(resolveRoot(['dist/inject.js']));
+
         this.staticItems.set('general.js', Buffer.from(
             original.toString() + '\n' + inject.toString()
         ));
     }
 
+    urlToHash (url: string): string {
+        return createHash('sha256').update(url).digest('hex');
+    }
+
     has (url: string): boolean {
-        return CacheBase.urlValid(url) 
-            && this.items.has(CacheBase.fileName(url));
+        return this.items.has(this.urlToHash(url));
     }
 
     get (url: string): Promise<Buffer> {
-        const name = CacheBase.fileName(url);
-        const path = resolve(CacheBase.CACHE_PATH, name);
+        const hash = this.urlToHash(url);
 
-        if (!this.items.has(name)) {
+        if (!this.items.has(hash)) {
             const message = `No file ${url} in cache.`;
             throw new Error(message);
         }
 
         return new Promise((resolve, reject) => {
-            readFile(path, (err, data) => err ? reject(err) : resolve(data));
+            readFile(resolveRoot([CACHE_DIR_NAME, hash]), (err, data) => err ? reject(err) : resolve(data));
         });
     }
 
     async set (response: Response): Promise<void> {
-        if (!CacheBase.shouldCache(response)) {
+        if (!CacheBase.chacheResponsePredicates.some((fn) => fn(response))) {
             return;
         }
 
-        const path = CacheBase.fileName(response.url());
-
-        if (this.items.has(path)) {
+        const hash = this.urlToHash(response.url());
+        if (this.items.has(hash)) {
             return;
         }
 
-        this.items.add(path);
+        this.items.add(hash);
+
         await new Promise(async (res, rej) => {
-            writeFile(resolve(CacheBase.CACHE_PATH, path), await response.buffer(), (err) => err ? rej(err) : res());
+            writeFile(resolveRoot([CACHE_DIR_NAME, hash]), await response.buffer(), (err) => err ? rej(err) : res());
         });
     }
     
